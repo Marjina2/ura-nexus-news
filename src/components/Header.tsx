@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, X, User } from 'lucide-react';
+import { Search, Menu, X, User, Bookmark, Settings, Crown } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +22,9 @@ const Header = () => {
   }, []);
 
   const navItems = ['World', 'India', 'Tech', 'Politics', 'Science', 'Business', 'Sports'];
+
+  // Check if user has Pro subscription (mock for now)
+  const isPro = user?.publicMetadata?.subscription === 'pro';
 
   return (
     <>
@@ -44,6 +50,12 @@ const Header = () => {
               <a href="/trending" className="text-ura-white hover:text-ura-green transition-colors">Trending</a>
               <a href="/pricing" className="text-ura-white hover:text-ura-green transition-colors">Pricing</a>
               <a href="/creators" className="text-ura-white hover:text-ura-green transition-colors">For Creators</a>
+              <SignedIn>
+                <a href="/dashboard" className="text-ura-white hover:text-ura-green transition-colors flex items-center gap-2">
+                  Dashboard
+                  {isPro && <Crown className="w-4 h-4 text-ura-green" />}
+                </a>
+              </SignedIn>
             </nav>
 
             {/* Search & Auth - Desktop */}
@@ -58,12 +70,41 @@ const Header = () => {
                   className="pl-10 bg-card border-border focus:border-ura-green w-64"
                 />
               </div>
-              <Button variant="ghost" className="text-ura-white hover:text-ura-green">
-                Sign In
-              </Button>
-              <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
-                Subscribe
-              </Button>
+              
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="ghost" className="text-ura-white hover:text-ura-green">
+                    Sign In
+                  </Button>
+                </SignInButton>
+                <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                  Subscribe
+                </Button>
+              </SignedOut>
+
+              <SignedIn>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-ura-white hover:text-ura-green"
+                  onClick={() => window.location.href = '/dashboard'}
+                >
+                  <Bookmark className="w-4 h-4 mr-2" />
+                  Bookmarks
+                </Button>
+                {!isPro && (
+                  <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                    Upgrade to Pro
+                  </Button>
+                )}
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                    },
+                  }}
+                />
+              </SignedIn>
             </div>
 
             {/* Mobile Menu */}
@@ -76,11 +117,16 @@ const Header = () => {
               <SheetContent side="right" className="w-80 bg-card border-l border-border">
                 <div className="flex flex-col h-full">
                   {/* Mobile Header */}
-                  <div className="flex items-center space-x-2 mb-6">
-                    <div className="w-8 h-8 bg-ura-green rounded-lg flex items-center justify-center">
-                      <span className="text-ura-black font-bold text-lg">U</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-ura-green rounded-lg flex items-center justify-center">
+                        <span className="text-ura-black font-bold text-lg">U</span>
+                      </div>
+                      <span className="text-2xl font-bold gradient-text">URA</span>
                     </div>
-                    <span className="text-2xl font-bold gradient-text">URA</span>
+                    <SignedIn>
+                      {isPro && <Badge variant="secondary" className="bg-ura-green text-ura-black">Pro</Badge>}
+                    </SignedIn>
                   </div>
 
                   {/* Mobile Search */}
@@ -101,6 +147,12 @@ const Header = () => {
                     <a href="/trending" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Trending</a>
                     <a href="/pricing" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Pricing</a>
                     <a href="/creators" className="block text-ura-white hover:text-ura-green transition-colors text-lg">For Creators</a>
+                    <SignedIn>
+                      <a href="/dashboard" className="block text-ura-white hover:text-ura-green transition-colors text-lg flex items-center gap-2">
+                        Dashboard
+                        {isPro && <Crown className="w-4 h-4 text-ura-green" />}
+                      </a>
+                    </SignedIn>
                   </nav>
 
                   {/* Mobile Categories */}
@@ -120,12 +172,32 @@ const Header = () => {
 
                   {/* Mobile Auth */}
                   <div className="mt-auto space-y-3">
-                    <Button variant="outline" className="w-full">
-                      Sign In
-                    </Button>
-                    <Button className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover">
-                      Subscribe
-                    </Button>
+                    <SignedOut>
+                      <SignInButton mode="modal">
+                        <Button variant="outline" className="w-full">
+                          Sign In
+                        </Button>
+                      </SignInButton>
+                      <Button className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                        Subscribe
+                      </Button>
+                    </SignedOut>
+
+                    <SignedIn>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => window.location.href = '/dashboard'}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </Button>
+                      {!isPro && (
+                        <Button className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                          Upgrade to Pro
+                        </Button>
+                      )}
+                    </SignedIn>
                   </div>
                 </div>
               </SheetContent>
