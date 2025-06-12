@@ -1,11 +1,10 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { useNews, NewsArticle } from '@/hooks/useNews';
 import NewsCard from './NewsCard';
-import { useRouter } from 'react-router-dom';
+import { useNews, NewsArticle } from '@/hooks/useNews';
 
 interface NewsFeedProps {
   category: string;
@@ -13,110 +12,77 @@ interface NewsFeedProps {
 }
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ category, onArticleRead }) => {
-  const { articles, isLoading, error, loadMore, hasMore, resetAndRefetch } = useNews(category);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
-          setIsLoadingMore(true);
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, isLoading, isLoadingMore, loadMore]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      setIsLoadingMore(false);
-    }
-  }, [isLoading]);
-
-  if (isLoading && articles.length === 0) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const { articles, isLoading, error, loadMore, hasMore } = useNews(category);
+  const navigate = useNavigate();
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-        <h3 className="text-lg font-semibold text-ura-white mb-2">Failed to load news</h3>
-        <p className="text-muted-foreground mb-4">
-          There was an error loading the news. Please try again.
-        </p>
-        <Button onClick={resetAndRefetch} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  if (articles.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-semibold text-ura-white mb-2">No articles found</h3>
-        <p className="text-muted-foreground">
-          No articles available for this category at the moment.
-        </p>
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">Failed to load news</p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map((article, index) => (
-          <NewsCard 
+          <NewsCard
             key={`${article.url}-${index}`}
             article={article}
-            onRead={onArticleRead}
+            onRead={() => onArticleRead(article)}
           />
         ))}
-      </div>
-
-      {/* Infinite scroll trigger */}
-      <div ref={loadMoreRef} className="flex justify-center py-8">
-        {isLoadingMore && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-3">
+        
+        {/* Loading Skeletons */}
+        {isLoading && (
+          <>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-card rounded-lg border border-border overflow-hidden">
                 <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-2/3" />
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                </div>
               </div>
             ))}
-          </div>
-        )}
-        
-        {!hasMore && articles.length > 0 && (
-          <p className="text-muted-foreground text-center">
-            You've reached the end of the articles
-          </p>
+          </>
         )}
       </div>
+
+      {/* Load More Button */}
+      {hasMore && !isLoading && (
+        <div className="text-center">
+          <Button
+            onClick={loadMore}
+            variant="outline"
+            className="border-ura-green/30 hover:border-ura-green text-ura-white"
+          >
+            Load More Articles
+          </Button>
+        </div>
+      )}
+
+      {/* No More Articles */}
+      {!hasMore && articles.length > 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No more articles to load</p>
+        </div>
+      )}
+
+      {/* No Articles Found */}
+      {!isLoading && articles.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No articles found for this category</p>
+        </div>
+      )}
     </div>
   );
 };
