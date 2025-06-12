@@ -9,7 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cached_articles: {
+        Row: {
+          cached_at: string
+          category: string | null
+          content: string | null
+          description: string | null
+          enhanced_content: string | null
+          enhanced_title: string | null
+          id: string
+          key_points: string[] | null
+          published_at: string
+          seo_optimized: boolean | null
+          source_name: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          url: string
+          url_to_image: string | null
+        }
+        Insert: {
+          cached_at?: string
+          category?: string | null
+          content?: string | null
+          description?: string | null
+          enhanced_content?: string | null
+          enhanced_title?: string | null
+          id?: string
+          key_points?: string[] | null
+          published_at: string
+          seo_optimized?: boolean | null
+          source_name: string
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          url: string
+          url_to_image?: string | null
+        }
+        Update: {
+          cached_at?: string
+          category?: string | null
+          content?: string | null
+          description?: string | null
+          enhanced_content?: string | null
+          enhanced_title?: string | null
+          id?: string
+          key_points?: string[] | null
+          published_at?: string
+          seo_optimized?: boolean | null
+          source_name?: string
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          url?: string
+          url_to_image?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

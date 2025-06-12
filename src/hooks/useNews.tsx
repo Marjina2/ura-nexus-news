@@ -84,6 +84,25 @@ export const useNews = (category: string = 'general') => {
 export const useEnhanceArticle = () => {
   const enhanceArticle = async (article: NewsArticle): Promise<EnhancedArticle> => {
     try {
+      // First try to get from cached articles
+      const { data: cachedArticle } = await supabase
+        .from('cached_articles')
+        .select('*')
+        .eq('url', article.url)
+        .single();
+
+      if (cachedArticle) {
+        return {
+          ...article,
+          enhancedTitle: cachedArticle.enhanced_title,
+          summary: cachedArticle.summary,
+          keyPoints: cachedArticle.key_points,
+          enhancedContent: cachedArticle.enhanced_content,
+          tags: cachedArticle.tags
+        };
+      }
+
+      // Fallback to real-time enhancement
       const { data, error } = await supabase.functions.invoke('enhance-article', {
         body: {
           title: article.title,
@@ -103,4 +122,26 @@ export const useEnhanceArticle = () => {
   };
 
   return { enhanceArticle };
+};
+
+export const useCachedArticles = (category?: string) => {
+  return useQuery({
+    queryKey: ['cached-articles', category],
+    queryFn: async () => {
+      let query = supabase
+        .from('cached_articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(10);
+
+      if (category && category !== 'general') {
+        query = query.eq('category', category);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 };

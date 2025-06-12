@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ClerkProvider } from '@clerk/clerk-react';
 import SecurityWrapper from "./components/SecurityWrapper";
 import Index from "./pages/Index";
+import News from "./pages/News";
 import Dashboard from "./pages/Dashboard";
 import Pricing from "./pages/Pricing";
 import About from "./pages/About";
@@ -29,6 +30,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/news" element={<News />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/about" element={<About />} />

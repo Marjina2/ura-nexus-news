@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Effects */}
@@ -41,6 +44,7 @@ const Hero = () => {
             <Button 
               size="lg" 
               className="bg-ura-green text-ura-black hover:bg-ura-green-hover text-lg px-8 py-4 animate-glow"
+              onClick={() => navigate('/news')}
             >
               Start Reading Free
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -49,6 +53,7 @@ const Hero = () => {
               variant="outline" 
               size="lg" 
               className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black text-lg px-8 py-4"
+              onClick={() => navigate('/pricing')}
             >
               For Content Creators
               <Zap className="ml-2 w-5 h-5" />
