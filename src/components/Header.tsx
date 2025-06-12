@@ -38,18 +38,20 @@ const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-ura-green rounded-lg flex items-center justify-center">
-                <span className="text-ura-black font-bold text-lg">U</span>
-              </div>
-              <span className="text-2xl font-bold gradient-text">URA</span>
+              <a href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-ura-green rounded-lg flex items-center justify-center">
+                  <span className="text-ura-black font-bold text-lg">U</span>
+                </div>
+                <span className="text-2xl font-bold gradient-text">URA</span>
+              </a>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
               <a href="/" className="text-ura-white hover:text-ura-green transition-colors">Home</a>
-              <a href="/trending" className="text-ura-white hover:text-ura-green transition-colors">Trending</a>
+              <a href="/about" className="text-ura-white hover:text-ura-green transition-colors">About</a>
               <a href="/pricing" className="text-ura-white hover:text-ura-green transition-colors">Pricing</a>
-              <a href="/creators" className="text-ura-white hover:text-ura-green transition-colors">For Creators</a>
+              <a href="/contact" className="text-ura-white hover:text-ura-green transition-colors">Contact</a>
               <SignedIn>
                 <a href="/dashboard" className="text-ura-white hover:text-ura-green transition-colors flex items-center gap-2">
                   Dashboard
@@ -93,7 +95,10 @@ const Header = () => {
                   Bookmarks
                 </Button>
                 {!isPro && (
-                  <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                  <Button 
+                    className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                    onClick={() => window.location.href = '/pricing'}
+                  >
                     Upgrade to Pro
                   </Button>
                 )}
@@ -144,9 +149,9 @@ const Header = () => {
                   {/* Mobile Navigation */}
                   <nav className="space-y-4 mb-6">
                     <a href="/" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Home</a>
-                    <a href="/trending" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Trending</a>
+                    <a href="/about" className="block text-ura-white hover:text-ura-green transition-colors text-lg">About</a>
                     <a href="/pricing" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Pricing</a>
-                    <a href="/creators" className="block text-ura-white hover:text-ura-green transition-colors text-lg">For Creators</a>
+                    <a href="/contact" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Contact</a>
                     <SignedIn>
                       <a href="/dashboard" className="block text-ura-white hover:text-ura-green transition-colors text-lg flex items-center gap-2">
                         Dashboard
@@ -178,7 +183,10 @@ const Header = () => {
                           Sign In
                         </Button>
                       </SignInButton>
-                      <Button className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                      <Button 
+                        className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                        onClick={() => window.location.href = '/pricing'}
+                      >
                         Subscribe
                       </Button>
                     </SignedOut>
@@ -193,7 +201,10 @@ const Header = () => {
                         Dashboard
                       </Button>
                       {!isPro && (
-                        <Button className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                        <Button 
+                          className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                          onClick={() => window.location.href = '/pricing'}
+                        >
                           Upgrade to Pro
                         </Button>
                       )}
