@@ -17,6 +17,7 @@ export const useBookmarks = () => {
   const { user } = useAuth();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch bookmarks from Supabase
   useEffect(() => {
@@ -29,6 +30,7 @@ export const useBookmarks = () => {
     if (!user) return;
     
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('user_bookmarks')
@@ -40,6 +42,7 @@ export const useBookmarks = () => {
       setBookmarks(data || []);
     } catch (error) {
       console.error('Error fetching bookmarks:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch bookmarks');
     } finally {
       setLoading(false);
     }
@@ -72,6 +75,7 @@ export const useBookmarks = () => {
       return true;
     } catch (error) {
       console.error('Error adding bookmark:', error);
+      setError(error instanceof Error ? error.message : 'Failed to add bookmark');
       return false;
     }
   };
@@ -92,6 +96,7 @@ export const useBookmarks = () => {
       return true;
     } catch (error) {
       console.error('Error removing bookmark:', error);
+      setError(error instanceof Error ? error.message : 'Failed to remove bookmark');
       return false;
     }
   };
@@ -106,6 +111,7 @@ export const useBookmarks = () => {
     removeBookmark,
     isBookmarked,
     loading,
+    error,
     count: bookmarks.length,
     maxBookmarks: 'Unlimited',
   };
