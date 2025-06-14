@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Menu, X, User, Bookmark, Settings, Crown, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import UserAvatar from '@/components/auth/UserAvatar';
+import VerificationBadge from '@/components/auth/VerificationBadge';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
@@ -130,7 +130,10 @@ const Header = () => {
                       <div className="flex items-center justify-start gap-2 p-2">
                         <UserAvatar user={user} profile={profile} size="sm" />
                         <div className="flex flex-col space-y-1 leading-none">
-                          <p className="font-medium text-plusee-white">{profile?.full_name || 'User'}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-plusee-white">{profile?.full_name || 'User'}</p>
+                            <VerificationBadge isVerified={profile?.is_verified} size="sm" showText={false} />
+                          </div>
                           <p className="text-xs text-muted-foreground">@{profile?.username}</p>
                         </div>
                       </div>
@@ -166,7 +169,12 @@ const Header = () => {
                       </div>
                       <span className="text-2xl font-bold gradient-text">Plusee</span>
                     </div>
-                    {user && isPro && <Badge variant="secondary" className="bg-plusee-green text-plusee-black">Pro</Badge>}
+                    {user && (
+                      <div className="flex items-center gap-2">
+                        {isPro && <Badge variant="secondary" className="bg-plusee-green text-plusee-black">Pro</Badge>}
+                        <VerificationBadge isVerified={profile?.is_verified} size="sm" showText={false} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Mobile Navigation */}
@@ -213,14 +221,6 @@ const Header = () => {
                       </>
                     ) : (
                       <>
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => navigate('/dashboard')}
-                        >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Dashboard
-                        </Button>
                         <Button 
                           variant="outline" 
                           className="w-full"

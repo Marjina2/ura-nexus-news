@@ -142,8 +142,13 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          is_verified: boolean | null
+          phone_number: string | null
           updated_at: string | null
           username: string
+          verification_completed_at: string | null
+          verification_sent_at: string | null
+          verification_token: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -151,8 +156,13 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_verified?: boolean | null
+          phone_number?: string | null
           updated_at?: string | null
           username: string
+          verification_completed_at?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -160,8 +170,13 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_verified?: boolean | null
+          phone_number?: string | null
           updated_at?: string | null
           username?: string
+          verification_completed_at?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
         }
         Relationships: []
       }
@@ -314,6 +329,10 @@ export type Database = {
       cleanup_expired_spotlight: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_verification_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       increment_article_views: {
         Args: { article_url: string }

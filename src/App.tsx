@@ -1,73 +1,70 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from './contexts/AuthContext';
-import SecurityWrapper from './components/SecurityWrapper';
-import Index from "./pages/Index";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import News from "./pages/News";
-import Dashboard from "./pages/Dashboard";
-import Pricing from "./pages/Pricing";
-import Article from "./pages/Article";
-import AccountSettings from "./pages/AccountSettings";
-import NotFound from "./pages/NotFound";
-import Trending from "./pages/Trending";
-import Categories from "./pages/Categories";
-import AIPicks from "./pages/AIPicks";
-import Search from "./pages/Search";
-import Licensing from "./pages/Licensing";
-import API from "./pages/API";
-import Analytics from "./pages/Analytics";
-import Community from "./pages/Community";
-import Help from "./pages/Help";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from '@/pages/Home';
+import About from '@/pages/About';
+import Pricing from '@/pages/Pricing';
+import Contact from '@/pages/Contact';
+import Dashboard from '@/pages/Dashboard';
+import Auth from '@/pages/Auth';
+import AccountSettings from '@/pages/AccountSettings';
+import NotFound from '@/pages/NotFound';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from '@/components/ui/toaster';
+import ArticleDetail from '@/pages/ArticleDetail';
+import Spotlight from '@/pages/Spotlight';
+import Categories from '@/pages/Categories';
+import CategoryDetail from '@/pages/CategoryDetail';
+import AIPicks from '@/pages/AIPicks';
+import Search from '@/pages/Search';
+import AuthCallback from '@/pages/AuthCallback';
+import ProfileCompletion from '@/components/auth/ProfileCompletion';
+import { useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
+function App() {
+  const { needsProfileCompletion, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-ura-black flex items-center justify-center">
+        <div className="text-ura-white">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show profile completion if needed
+  if (needsProfileCompletion) {
+    return <ProfileCompletion />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-ura-black text-ura-white">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/account" element={<AccountSettings />} />
+            <Route path="/article/:url" element={<ArticleDetail />} />
+            <Route path="/spotlight" element={<Spotlight />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/category/:category" element={<CategoryDetail />} />
+            <Route path="/ai-picks" element={<AIPicks />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
         <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <SecurityWrapper>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/article" element={<Article />} />
-              <Route path="/account" element={<AccountSettings />} />
-              <Route path="/trending" element={<Trending />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/ai-picks" element={<AIPicks />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/licensing" element={<Licensing />} />
-              <Route path="/api" element={<API />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </SecurityWrapper>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      </div>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   profile: any | null;
   loading: boolean;
+  needsProfileCompletion: boolean;
   signOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUpWithEmail: (email: string, password: string, username: string, country: string, fullName: string) => Promise<{ error: any }>;
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -42,6 +44,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!error && data) {
         setProfile(data);
+        
+        // Check if profile needs completion (missing required fields)
+        const isIncomplete = !data.full_name || !data.phone_number || !data.country;
+        setNeedsProfileCompletion(isIncomplete);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -62,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }, 0);
         } else {
           setProfile(null);
+          setNeedsProfileCompletion(false);
         }
         
         setLoading(false);
@@ -149,7 +156,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', user.id);
     
     if (!error) {
-      setProfile(prev => ({ ...prev, ...updates }));
+      const updatedProfile = { ...profile, ...updates };
+      setProfile(updatedProfile);
+      
+      // Check if profile completion is no longer needed
+      const isIncomplete = !updatedProfile.full_name || !updatedProfile.phone_number || !updatedProfile.country;
+      setNeedsProfileCompletion(isIncomplete);
     }
     
     return { error };
@@ -160,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile,
     loading,
+    needsProfileCompletion,
     signOut,
     signInWithEmail,
     signUpWithEmail,
