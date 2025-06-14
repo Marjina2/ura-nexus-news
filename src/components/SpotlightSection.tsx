@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,9 +45,10 @@ const SpotlightSection = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: spotlightArticles, isLoading, refetch } = useQuery({
+  const { data: spotlightArticles, isLoading, refetch, error } = useQuery({
     queryKey: ['spotlight-articles'],
     queryFn: async () => {
+      console.log('Fetching spotlight articles...');
       const { data, error } = await supabase
         .from('spotlight_articles')
         .select('*')
@@ -55,7 +57,12 @@ const SpotlightSection = () => {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching spotlight articles:', error);
+        throw error;
+      }
+      
+      console.log('Spotlight articles fetched:', data);
       return data as SpotlightArticle[];
     },
     staleTime: 1 * 60 * 1000,
@@ -73,6 +80,7 @@ const SpotlightSection = () => {
           table: 'spotlight_articles'
         },
         () => {
+          console.log('Spotlight article updated via realtime');
           refetch();
           setLiveUpdateCount(prev => prev + 1);
         }
@@ -99,15 +107,19 @@ const SpotlightSection = () => {
         });
       }, 500);
 
+      console.log('Invoking update-spotlight function...');
       const { data, error } = await supabase.functions.invoke('update-spotlight');
       
       clearInterval(progressInterval);
       setUpdateProgress(100);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error from update-spotlight function:', error);
+        throw error;
+      }
       
+      console.log('Spotlight update response:', data);
       await refetch();
-      console.log('Spotlight updated successfully:', data);
       
       setTimeout(() => {
         setIsUpdating(false);
@@ -125,17 +137,32 @@ const SpotlightSection = () => {
       ...article,
       isSpotlight: true,
       publishedAt: article.created_at,
-      source: { name: 'URA News Live' }
+      source: { name: 'Pulsee News Live' }
     }));
     navigate(`/article?data=${spotlightData}`);
   };
 
-  if (isLoading) {
-    return <SpotlightLoading progress={0} />;
+  if (isLoading || isUpdating) {
+    return <SpotlightLoading progress={isUpdating ? updateProgress : 0} />;
   }
 
-  if (isUpdating) {
-    return <SpotlightLoading progress={updateProgress} />;
+  if (error) {
+    console.error('Spotlight section error:', error);
+    return (
+      <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <SpotlightHeader currentTime={currentTime} liveUpdateCount={liveUpdateCount} />
+          <p className="text-red-400 mb-4">Failed to load spotlight content</p>
+          <Button
+            onClick={handleUpdateSpotlight}
+            className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </section>
+    );
   }
 
   if (!spotlightArticles || spotlightArticles.length === 0) {
@@ -143,7 +170,7 @@ const SpotlightSection = () => {
       <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <SpotlightHeader currentTime={currentTime} liveUpdateCount={liveUpdateCount} />
-          <p className="text-muted-foreground mb-6">Update spotlight with current groundbreaking news</p>
+          <p className="text-muted-foreground mb-6">No spotlight content available. Generate fresh breaking news now!</p>
           <Button
             onClick={handleUpdateSpotlight}
             disabled={isUpdating}
@@ -152,12 +179,12 @@ const SpotlightSection = () => {
             {isUpdating ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Updating...
+                Generating...
               </>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Update Spotlight
+                Generate Spotlight
               </>
             )}
           </Button>
