@@ -38,7 +38,7 @@ serve(async (req) => {
     Make the content more engaging while maintaining accuracy. Focus on clarity and readability.
     `
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
     
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
