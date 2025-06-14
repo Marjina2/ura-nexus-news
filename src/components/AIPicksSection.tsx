@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Brain, ArrowRight, Clock } from 'lucide-react';
+import { Sparkles, Brain, ArrowRight, Clock, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNews } from '@/hooks/useNews';
 
@@ -40,7 +40,7 @@ const AIPicksSection = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-ura-white mb-4">
-              AI Picks - <span className="gradient-text">Enhanced Stories</span>
+              Latest News - <span className="gradient-text">AI Powered</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -60,10 +60,10 @@ const AIPicksSection = () => {
     );
   }
 
-  const aiEnhancedStories = articles.slice(0, 3).map((article, index) => ({
+  const latestNews = articles.slice(0, 3).map((article, index) => ({
     ...article,
-    enhancementType: ['Enhanced Analysis', 'Deep Dive', 'Cross-Industry Analysis'][index],
-    confidence: [95, 92, 89][index]
+    aiFeature: ['Real-time Analysis', 'Breaking News Alert', 'Trending Topic'][index],
+    priority: ['High', 'Medium', 'High'][index]
   }));
 
   return (
@@ -72,40 +72,40 @@ const AIPicksSection = () => {
         {/* Section Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center space-x-2 bg-card/50 backdrop-blur-sm border border-ura-green/20 rounded-full px-4 py-2 mb-6">
-            <Brain className="w-4 h-4 text-ura-green" />
-            <span className="text-sm text-ura-white">AI-Enhanced Content</span>
+            <Zap className="w-4 h-4 text-ura-green" />
+            <span className="text-sm text-ura-white">Latest News Updates</span>
           </div>
           
           <h2 className="text-4xl font-bold text-ura-white mb-4">
-            AI Picks - <span className="gradient-text">Enhanced Stories</span>
+            Latest News - <span className="gradient-text">AI Powered</span>
           </h2>
           
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our AI doesn't just summarize - it enhances, analyzes, and connects stories 
-            to provide deeper insights you won't find anywhere else.
+            Stay ahead with real-time news updates powered by AI. Get the latest stories 
+            as they happen, with intelligent analysis and context.
           </p>
         </div>
 
-        {/* AI Enhanced Stories Grid */}
+        {/* Latest News Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {aiEnhancedStories.map((story, index) => (
+          {latestNews.map((story, index) => (
             <Card 
               key={`${story.url}-${index}`}
               className="group bg-card border-border hover-lift cursor-pointer overflow-hidden relative"
               onClick={() => handleArticleClick(story)}
             >
-              {/* AI Badge */}
+              {/* Priority Badge */}
               <div className="absolute top-4 left-4 z-10">
-                <Badge className="bg-gradient-to-r from-ura-green to-blue-500 text-white">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI-Enhanced
+                <Badge className={`${story.priority === 'High' ? 'bg-red-500' : 'bg-orange-500'} text-white`}>
+                  <Zap className="w-3 h-3 mr-1" />
+                  {story.priority} Priority
                 </Badge>
               </div>
 
-              {/* Confidence Indicator */}
+              {/* AI Feature Badge */}
               <div className="absolute top-4 right-4 z-10">
                 <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white">
-                  {story.confidence}% confidence
+                  {story.aiFeature}
                 </div>
               </div>
 
@@ -124,11 +124,11 @@ const AIPicksSection = () => {
               
               <CardContent className="p-6">
                 <div className="flex items-center space-x-2 mb-3">
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
+                  <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
                     {story.source.name}
                   </Badge>
                   <Badge variant="outline" className="border-ura-green/30 text-ura-green text-xs">
-                    {story.enhancementType}
+                    Live Update
                   </Badge>
                 </div>
                 
@@ -143,9 +143,9 @@ const AIPicksSection = () => {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
-                    <span>6 min read</span>
+                    <span>4 min read</span>
                   </div>
-                  <span>Enhanced {formatTimeAgo(story.publishedAt)}</span>
+                  <span>Updated {formatTimeAgo(story.publishedAt)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -158,30 +158,30 @@ const AIPicksSection = () => {
             <CardContent className="p-8">
               <div className="flex items-center justify-center space-x-2 mb-4">
                 <Brain className="w-6 h-6 text-ura-green" />
-                <h3 className="text-2xl font-bold text-ura-white">Experience AI-Enhanced Journalism</h3>
+                <h3 className="text-2xl font-bold text-ura-white">Never Miss Breaking News</h3>
               </div>
               
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                Get access to our complete library of AI-enhanced articles, deeper analysis, 
-                and exclusive insights that traditional news sources can't provide.
+                Get real-time notifications for breaking news, AI-powered summaries, and 
+                personalized news feeds tailored to your interests.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <Button 
                   size="lg" 
                   className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
-                  onClick={() => navigate('/auth')}
+                  onClick={() => navigate('/news')}
                 >
-                  Subscribe for AI Content
+                  View All Latest News
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
                   className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black"
-                  onClick={() => navigate('/news')}
+                  onClick={() => navigate('/auth')}
                 >
-                  View Free Samples
+                  Subscribe for Alerts
                 </Button>
               </div>
             </CardContent>

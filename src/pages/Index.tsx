@@ -2,10 +2,10 @@
 import React from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
-import TrendingCarousel from '@/components/TrendingCarousel';
+import CreatorCTA from '@/components/CreatorCTA';
+import PricingHero from '@/components/pricing/PricingHero';
 import TopStories from '@/components/TopStories';
 import AIPicksSection from '@/components/AIPicksSection';
-import CreatorCTA from '@/components/CreatorCTA';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -14,10 +14,10 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <TrendingCarousel />
+        <CreatorCTA />
+        <PricingHero />
         <TopStories />
         <AIPicksSection />
-        <CreatorCTA />
       </main>
       <Footer />
     </div>
