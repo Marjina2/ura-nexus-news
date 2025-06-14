@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,24 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
   const [serpApiKey, setSerpApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const isPremiumUser = !!user;
+
+  // Load saved API key on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('serpApiKey');
+    if (savedApiKey) {
+      setSerpApiKey(savedApiKey);
+    } else {
+      // Set the provided API key as default
+      const defaultApiKey = '18192c65ffa42fc628064e86f1e811100df2950e2ba97dc389701710a93c73c5';
+      setSerpApiKey(defaultApiKey);
+      localStorage.setItem('serpApiKey', defaultApiKey);
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    localStorage.setItem('serpApiKey', serpApiKey);
+    setShowApiKeyInput(false);
+  };
 
   const handleGenerateAINews = () => {
     if (!isPremiumUser) {
@@ -56,7 +74,7 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
 
       <p className="text-muted-foreground mb-4">
         {isPremiumUser 
-          ? `Upgrade to premium to access AI-generated fresh news articles about ${category} from ${country === 'in' ? 'India' : 'your region'} powered by SERP API`
+          ? `AI-generated fresh news articles about ${category} from ${country === 'in' ? 'India' : 'your region'} powered by SERP API with real-time Google search integration`
           : 'Upgrade to premium to access AI-generated fresh news articles powered by SERP API'
         }
       </p>
@@ -77,7 +95,7 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
               className="bg-card border-border text-ura-white"
             />
             <Button
-              onClick={() => setShowApiKeyInput(false)}
+              onClick={handleSaveApiKey}
               size="sm"
               className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
             >

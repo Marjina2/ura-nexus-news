@@ -1,33 +1,21 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface NewsArticle {
+  id: string;
   title: string;
   description: string;
   url: string;
-  urlToImage: string;
+  urlToImage: string | null;
   publishedAt: string;
-  source: {
-    name: string;
-  };
-  content?: string;
-  id?: string;
+  source: { name: string };
+  content: string;
   isAI?: boolean;
+  isSERP?: boolean;
   image_url?: string;
   published_at?: string;
   tags?: string[];
-}
-
-export interface EnhancedArticle extends NewsArticle {
-  enhancedTitle?: string;
-  summary?: string;
-  keyPoints?: string[];
-  enhancedContent?: string;
-  tags?: string[];
-  image_url?: string;
-  published_at?: string;
 }
 
 export interface AIGeneratedArticle {
@@ -37,114 +25,82 @@ export interface AIGeneratedArticle {
   summary: string;
   category: string;
   country: string;
-  author: string;
-  tags: string[];
   image_url: string;
-  seo_title: string;
-  seo_description: string;
-  seo_keywords: string[];
   published_at: string;
+  tags: string[];
+  is_active: boolean;
   created_at: string;
-  updated_at: string;
-  view_count: number;
-  is_featured: boolean;
-  auto_generated: boolean;
-  generation_batch_id: string;
-  next_generation_time: string;
 }
 
-const NEWS_CATEGORIES = [
-  'general',
-  'business', 
-  'entertainment',
-  'health',
-  'science',
-  'sports',
-  'technology',
-  'politics'
-];
-
 export const useNews = (category: string = 'general', country: string = 'in') => {
-  const [page, setPage] = useState(1);
-  const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
-  const [seenUrls, setSeenUrls] = useState<Set<string>>(new Set());
-
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['news', category, country, page],
+  const categories = ['general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
+  
+  const { data: articles, isLoading, error, refetch } = useQuery({
+    queryKey: ['news', category, country],
     queryFn: async () => {
-      console.log('Fetching news for category:', category, 'country:', country, 'page:', page);
-      const { data, error } = await supabase.functions.invoke('fetch-fresh-news', {
-        body: { category, page, country }
+      console.log('Fetching news for category:', category, 'country:', country);
+      
+      const { data, error } = await supabase.functions.invoke('fetch-news', {
+        body: { category, country }
       });
 
       if (error) {
-        console.error('Error from fetch-fresh-news function:', error);
+        console.error('Supabase function error:', error);
         throw error;
       }
-      console.log('Received news data:', data);
-      return data;
+
+      console.log('News data received:', data);
+      return data?.articles || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 30 * 60 * 1000, // Refetch every 30 minutes
-    refetchIntervalInBackground: true,
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
   });
 
-  useEffect(() => {
-    if (data?.articles) {
-      console.log('Processing articles:', data.articles.length);
-      // Filter out articles we've already seen
-      const newArticles = data.articles.filter((article: NewsArticle) => {
-        const articleUrl = article.url || article.id || '';
-        if (seenUrls.has(articleUrl)) {
-          return false;
-        }
-        setSeenUrls(prev => new Set([...prev, articleUrl]));
-        return true;
-      });
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
 
-      console.log('New unique articles:', newArticles.length);
-      
-      if (page === 1) {
-        setAllArticles(newArticles);
-      } else {
-        setAllArticles(prev => [...prev, ...newArticles]);
-      }
-    }
-  }, [data, page]);
-
-  // Reset when category or country changes
-  useEffect(() => {
-    setPage(1);
-    setAllArticles([]);
-    setSeenUrls(new Set());
-  }, [category, country]);
-
-  const loadMore = () => {
-    console.log('Loading more articles, current page:', page);
+  const loadMore = async () => {
+    // Simulate loading more articles
     setPage(prev => prev + 1);
-  };
-
-  const resetAndRefetch = () => {
-    console.log('Resetting and refetching');
-    setPage(1);
-    setAllArticles([]);
-    setSeenUrls(new Set());
-    refetch();
+    if (page >= 3) {
+      setHasMore(false);
+    }
   };
 
   return {
-    articles: allArticles,
+    articles: articles || [],
     isLoading,
     error,
     loadMore,
-    hasMore: page < 5, // Limit to 5 pages to prevent infinite loading
-    resetAndRefetch,
-    categories: NEWS_CATEGORIES
+    hasMore,
+    categories,
+    refetch
   };
 };
 
-export const useAIGeneratedArticles = (category: string, country: string = 'in') => {
-  const { data: aiArticles, isLoading, error, refetch } = useQuery({
+export const useAIGeneratedArticles = (category: string, country: string) => {
+  const [aiArticles, setAiArticles] = useState<AIGeneratedArticle[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const generateArticles = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ai-news', {
+        body: { category, country, count: 5 }
+      });
+
+      if (error) throw error;
+
+      setAiArticles(data?.articles || []);
+    } catch (error) {
+      console.error('Error generating AI articles:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch existing AI articles
+  const { data: existingArticles } = useQuery({
     queryKey: ['ai-articles', category, country],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -152,103 +108,24 @@ export const useAIGeneratedArticles = (category: string, country: string = 'in')
         .select('*')
         .eq('category', category)
         .eq('country', country)
-        .order('published_at', { ascending: false })
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
       return data as AIGeneratedArticle[];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const generateArticles = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-ai-news', {
-        body: { category, country, count: 3 }
-      });
-
-      if (error) throw error;
-      
-      // Refetch to get the new articles
-      refetch();
-      
-      return data;
-    } catch (error) {
-      console.error('Error generating AI articles:', error);
-      throw error;
+  useEffect(() => {
+    if (existingArticles) {
+      setAiArticles(existingArticles);
     }
-  };
+  }, [existingArticles]);
 
   return {
     aiArticles,
     isLoading,
-    error,
-    generateArticles,
-    refetch
+    generateArticles
   };
-};
-
-export const useEnhanceArticle = () => {
-  const enhanceArticle = async (article: NewsArticle): Promise<EnhancedArticle> => {
-    try {
-      // First try to get from cached articles
-      const { data: cachedArticle } = await supabase
-        .from('cached_articles')
-        .select('*')
-        .eq('url', article.url)
-        .single();
-
-      if (cachedArticle) {
-        return {
-          ...article,
-          enhancedTitle: cachedArticle.enhanced_title,
-          summary: cachedArticle.summary,
-          keyPoints: cachedArticle.key_points,
-          enhancedContent: cachedArticle.enhanced_content,
-          tags: cachedArticle.tags
-        };
-      }
-
-      // Fallback to real-time enhancement
-      const { data, error } = await supabase.functions.invoke('enhance-article', {
-        body: {
-          title: article.title,
-          description: article.description,
-          content: article.content,
-          url: article.url
-        }
-      });
-
-      if (error) throw error;
-
-      return { ...article, ...data };
-    } catch (error) {
-      console.error('Error enhancing article:', error);
-      return article;
-    }
-  };
-
-  return { enhanceArticle };
-};
-
-export const useCachedArticles = (category?: string) => {
-  return useQuery({
-    queryKey: ['cached-articles', category],
-    queryFn: async () => {
-      let query = supabase
-        .from('cached_articles')
-        .select('*')
-        .order('published_at', { ascending: false })
-        .limit(10);
-
-      if (category && category !== 'general') {
-        query = query.eq('category', category);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
 };
