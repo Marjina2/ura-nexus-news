@@ -92,7 +92,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(null);
       setProfile(null);
     }
-    return { error };
   };
 
   const signInWithEmail = async (email: string, password: string) => {
