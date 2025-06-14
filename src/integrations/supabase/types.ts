@@ -290,36 +290,51 @@ export type Database = {
       }
       spotlight_news: {
         Row: {
+          black_box_found: boolean | null
+          casualties_count: number | null
           created_at: string
           date: string
+          emergency_contacts: Json | null
           full_report: string | null
           gemini_topic: string
           id: string
           image_url: string | null
+          location: string | null
           seo_title: string | null
           summary: string | null
+          survivors_count: number | null
           updated_at: string
         }
         Insert: {
+          black_box_found?: boolean | null
+          casualties_count?: number | null
           created_at?: string
           date: string
+          emergency_contacts?: Json | null
           full_report?: string | null
           gemini_topic: string
           id?: string
           image_url?: string | null
+          location?: string | null
           seo_title?: string | null
           summary?: string | null
+          survivors_count?: number | null
           updated_at?: string
         }
         Update: {
+          black_box_found?: boolean | null
+          casualties_count?: number | null
           created_at?: string
           date?: string
+          emergency_contacts?: Json | null
           full_report?: string | null
           gemini_topic?: string
           id?: string
           image_url?: string | null
+          location?: string | null
           seo_title?: string | null
           summary?: string | null
+          survivors_count?: number | null
           updated_at?: string
         }
         Relationships: []
