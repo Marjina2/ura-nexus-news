@@ -15,7 +15,7 @@ interface NewsFeedProps {
 }
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticleRead }) => {
-  const { articles, isLoading, error, loadMore, hasMore } = useNews(category);
+  const { articles, isLoading, error, loadMore, hasMore } = useNews(category, country);
   const { aiArticles, isLoading: aiLoading, generateArticles } = useAIGeneratedArticles(category, country);
 
   const generateAINews = async () => {
@@ -64,7 +64,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-ura-green" />
-            <h3 className="text-lg font-semibold text-ura-white">AI-Generated News</h3>
+            <h3 className="text-lg font-semibold text-ura-white">Fresh News from Gemini AI</h3>
             <Badge variant="secondary" className="bg-ura-green text-ura-black">
               {category.charAt(0).toUpperCase() + category.slice(1)} • {country.toUpperCase()}
             </Badge>
@@ -85,14 +85,14 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
           </Button>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Get AI-generated news articles about current events, politics, accidents, and more from India
+          Get fresh, unique news articles powered by Gemini AI about {category} from India
         </p>
       </div>
 
       {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {combinedArticles.map((article, index) => (
-          <div key={`${article.url || article.id}-${index}`} className="relative">
+          <div key={`${article.url || article.id}-${index}-${article.publishedAt}`} className="relative">
             {article.isAI && (
               <div className="absolute top-2 right-2 z-10">
                 <Badge className="bg-gradient-to-r from-ura-green to-blue-500 text-white">
@@ -112,7 +112,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
         {(isLoading || aiLoading) && (
           <>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-card rounded-lg border border-border overflow-hidden">
+              <div key={`skeleton-${i}`} className="bg-card rounded-lg border border-border overflow-hidden">
                 <Skeleton className="h-48 w-full" />
                 <div className="p-4 space-y-3">
                   <Skeleton className="h-4 w-3/4" />
@@ -130,14 +130,15 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
       </div>
 
       {/* Load More Button */}
-      {hasMore && !isLoading && (
+      {hasMore && !isLoading && combinedArticles.length > 0 && (
         <div className="text-center">
           <Button
             onClick={loadMore}
             variant="outline"
             className="border-ura-green/30 hover:border-ura-green text-ura-white"
+            disabled={isLoading}
           >
-            Load More Articles
+            {isLoading ? 'Loading...' : 'Load More Fresh Articles'}
           </Button>
         </div>
       )}
@@ -145,7 +146,14 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
       {/* No More Articles */}
       {!hasMore && combinedArticles.length > 0 && (
         <div className="text-center py-8">
-          <p className="text-muted-foreground">No more articles to load</p>
+          <p className="text-muted-foreground">You've reached the end of fresh articles</p>
+          <Button
+            onClick={generateAINews}
+            className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Generate More AI News
+          </Button>
         </div>
       )}
 

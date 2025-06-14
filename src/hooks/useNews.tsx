@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,48 +60,64 @@ const NEWS_CATEGORIES = [
   'politics'
 ];
 
-export const useNews = (category: string = 'general') => {
+export const useNews = (category: string = 'general', country: string = 'in') => {
   const [page, setPage] = useState(1);
   const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
+  const [seenUrls, setSeenUrls] = useState<Set<string>>(new Set());
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['news', category, page],
+    queryKey: ['news', category, country, page],
     queryFn: async () => {
-      console.log('Fetching news for category:', category, 'page:', page);
-      const { data, error } = await supabase.functions.invoke('fetch-news', {
-        body: { category, page, country: 'in' }
+      console.log('Fetching news for category:', category, 'country:', country, 'page:', page);
+      const { data, error } = await supabase.functions.invoke('fetch-fresh-news', {
+        body: { category, page, country }
       });
 
       if (error) {
-        console.error('Error from fetch-news function:', error);
+        console.error('Error from fetch-fresh-news function:', error);
         throw error;
       }
       console.log('Received news data:', data);
       return data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 60 * 60 * 1000, // Refetch every hour
+    refetchInterval: 30 * 60 * 1000, // Refetch every 30 minutes
     refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
     if (data?.articles) {
-      console.log('Setting articles:', data.articles.length);
+      console.log('Processing articles:', data.articles.length);
+      // Filter out articles we've already seen
+      const newArticles = data.articles.filter((article: NewsArticle) => {
+        const articleUrl = article.url || article.id || '';
+        if (seenUrls.has(articleUrl)) {
+          return false;
+        }
+        setSeenUrls(prev => new Set([...prev, articleUrl]));
+        return true;
+      });
+
+      console.log('New unique articles:', newArticles.length);
+      
       if (page === 1) {
-        setAllArticles(data.articles);
+        setAllArticles(newArticles);
       } else {
-        setAllArticles(prev => [...prev, ...data.articles]);
+        setAllArticles(prev => [...prev, ...newArticles]);
       }
     }
   }, [data, page]);
 
   const loadMore = () => {
+    console.log('Loading more articles, current page:', page);
     setPage(prev => prev + 1);
   };
 
   const resetAndRefetch = () => {
+    console.log('Resetting and refetching');
     setPage(1);
     setAllArticles([]);
+    setSeenUrls(new Set());
     refetch();
   };
 
@@ -111,7 +126,7 @@ export const useNews = (category: string = 'general') => {
     isLoading,
     error,
     loadMore,
-    hasMore: data?.totalResults ? allArticles.length < data.totalResults : false,
+    hasMore: page < 5, // Limit to 5 pages to prevent infinite loading
     resetAndRefetch,
     categories: NEWS_CATEGORIES
   };

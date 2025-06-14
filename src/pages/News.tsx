@@ -28,6 +28,14 @@ const News = () => {
     navigate(`/article?data=${articleData}`);
   };
 
+  const handleCategoryChange = (newCategory: string) => {
+    setSelectedCategory(newCategory);
+  };
+
+  const handleCountryChange = (newCountry: string) => {
+    setSelectedCountry(newCountry);
+  };
+
   return (
     <div className="min-h-screen bg-ura-black">
       <Header />
@@ -46,10 +54,10 @@ const News = () => {
           {/* Page Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
-              Latest News
+              Latest Fresh News
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Stay updated with AI-enhanced news from trusted sources across various categories and countries
+              Stay updated with fresh, unique news powered by Gemini AI from trusted sources across various categories
             </p>
           </div>
 
@@ -67,7 +75,7 @@ const News = () => {
                   <Globe className="w-4 h-4" />
                   Country
                 </label>
-                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                <Select value={selectedCountry} onValueChange={handleCountryChange}>
                   <SelectTrigger className="bg-card border-border text-ura-white">
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
@@ -86,7 +94,7 @@ const News = () => {
                 <label className="text-sm font-medium text-ura-white">
                   Category
                 </label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select value={selectedCategory} onValueChange={handleCategoryChange}>
                   <SelectTrigger className="bg-card border-border text-ura-white">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -106,7 +114,7 @@ const News = () => {
               {categories.map((category) => (
                 <Button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleCategoryChange(category)}
                   variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
                   className={
