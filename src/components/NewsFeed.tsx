@@ -3,9 +3,10 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, Crown } from 'lucide-react';
 import NewsCard from './NewsCard';
 import { useNews, NewsArticle, useAIGeneratedArticles } from '@/hooks/useNews';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface NewsFeedProps {
@@ -17,8 +18,18 @@ interface NewsFeedProps {
 const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticleRead }) => {
   const { articles, isLoading, error, loadMore, hasMore } = useNews(category, country);
   const { aiArticles, isLoading: aiLoading, generateArticles } = useAIGeneratedArticles(category, country);
+  const { user } = useAuth();
+
+  // Check if user has premium access (for now, we'll assume all authenticated users are premium)
+  const isPremiumUser = !!user;
 
   const generateAINews = async () => {
+    if (!isPremiumUser) {
+      // Redirect to pricing or show premium modal
+      window.location.href = '/pricing';
+      return;
+    }
+
     try {
       await generateArticles();
     } catch (error) {
@@ -31,10 +42,10 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
     id: aiArticle.id,
     title: aiArticle.title,
     description: aiArticle.summary || aiArticle.content.substring(0, 200) + '...',
-    url: `#ai-article-${aiArticle.id}`, // Placeholder URL for AI articles
+    url: `#ai-article-${aiArticle.id}`,
     urlToImage: aiArticle.image_url,
     publishedAt: aiArticle.published_at,
-    source: { name: 'AI News Assistant' },
+    source: { name: 'URA News AI' },
     content: aiArticle.content,
     isAI: true,
     image_url: aiArticle.image_url,
@@ -64,28 +75,32 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-ura-green" />
-            <h3 className="text-lg font-semibold text-ura-white">Fresh News from Gemini AI</h3>
+            <h3 className="text-lg font-semibold text-ura-white">Fresh News from Our Top AI Models</h3>
             <Badge variant="secondary" className="bg-ura-green text-ura-black">
               {category.charAt(0).toUpperCase() + category.slice(1)} • {country.toUpperCase()}
             </Badge>
           </div>
           <Button
             onClick={generateAINews}
-            disabled={aiLoading}
+            disabled={aiLoading || !isPremiumUser}
             variant="outline"
             size="sm"
-            className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black"
+            className={`border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black ${!isPremiumUser ? 'opacity-50' : ''}`}
           >
+            {!isPremiumUser && <Crown className="w-4 h-4 mr-2" />}
             {aiLoading ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Sparkles className="w-4 h-4 mr-2" />
             )}
-            Generate Fresh News
+            {isPremiumUser ? 'Generate Fresh News' : 'Premium Feature'}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Get fresh, unique news articles powered by Gemini AI about {category} from India
+          {isPremiumUser 
+            ? `Get fresh, unique news articles powered by our advanced AI models about ${category} from ${country === 'in' ? 'India' : 'your region'}`
+            : 'Upgrade to premium to access AI-generated fresh news articles'
+          }
         </p>
       </div>
 
@@ -147,13 +162,15 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
       {!hasMore && combinedArticles.length > 0 && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">You've reached the end of fresh articles</p>
-          <Button
-            onClick={generateAINews}
-            className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Generate More AI News
-          </Button>
+          {isPremiumUser && (
+            <Button
+              onClick={generateAINews}
+              className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate More AI News
+            </Button>
+          )}
         </div>
       )}
 
@@ -161,13 +178,15 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
       {!isLoading && !aiLoading && combinedArticles.length === 0 && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No articles found for this category</p>
-          <Button
-            onClick={generateAINews}
-            className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Generate AI News
-          </Button>
+          {isPremiumUser && (
+            <Button
+              onClick={generateAINews}
+              className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate AI News
+            </Button>
+          )}
         </div>
       )}
     </div>

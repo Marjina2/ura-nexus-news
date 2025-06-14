@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,11 +26,32 @@ const AIPicksSection = () => {
     return `${diffInDays}d ago`;
   };
 
-  const getImageUrl = (url: string | null) => {
-    if (!url) return '/placeholder.svg';
+  const cleanTitle = (title: string) => {
+    return title
+      .replace(/^\d+\.\s*/, '')
+      .replace(/\[\d+\]/g, '')
+      .replace(/\(\d+\)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const getImageUrl = (url: string | null, title: string) => {
+    if (!url) return generateImageUrl(title);
     if (url.startsWith('//')) return `https:${url}`;
-    if (url.startsWith('/')) return '/placeholder.svg';
+    if (url.startsWith('/')) return generateImageUrl(title);
     return url;
+  };
+
+  const generateImageUrl = (title: string) => {
+    const keywords = title.toLowerCase();
+    
+    if (keywords.includes('technology') || keywords.includes('tech') || keywords.includes('ai')) {
+      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop';
+    }
+    if (keywords.includes('business') || keywords.includes('finance')) {
+      return 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop';
+    }
+    return 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
   };
 
   if (isLoading) {
@@ -62,6 +82,7 @@ const AIPicksSection = () => {
 
   const latestNews = articles.slice(0, 3).map((article, index) => ({
     ...article,
+    title: cleanTitle(article.title),
     aiFeature: ['Real-time Analysis', 'Breaking News Alert', 'Trending Topic'][index],
     priority: ['High', 'Medium', 'High'][index]
   }));
@@ -111,12 +132,12 @@ const AIPicksSection = () => {
 
               <div className="relative">
                 <img
-                  src={getImageUrl(story.urlToImage)}
+                  src={getImageUrl(story.urlToImage, story.title)}
                   alt={story.title}
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder.svg';
+                    target.src = generateImageUrl(story.title);
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -125,7 +146,7 @@ const AIPicksSection = () => {
               <CardContent className="p-6">
                 <div className="flex items-center space-x-2 mb-3">
                   <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
-                    {story.source.name}
+                    URA News
                   </Badge>
                   <Badge variant="outline" className="border-ura-green/30 text-ura-green text-xs">
                     Live Update
