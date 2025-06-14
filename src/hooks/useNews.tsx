@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,8 @@ export interface NewsArticle {
     name: string;
   };
   content?: string;
+  id?: string;
+  isAI?: boolean;
 }
 
 export interface EnhancedArticle extends NewsArticle {
@@ -23,6 +24,26 @@ export interface EnhancedArticle extends NewsArticle {
   tags?: string[];
 }
 
+export interface AIGeneratedArticle {
+  id: string;
+  title: string;
+  content: string;
+  summary: string;
+  category: string;
+  country: string;
+  author: string;
+  tags: string[];
+  image_url: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string[];
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+  view_count: number;
+  is_featured: boolean;
+}
+
 const NEWS_CATEGORIES = [
   'general',
   'business', 
@@ -30,7 +51,8 @@ const NEWS_CATEGORIES = [
   'health',
   'science',
   'sports',
-  'technology'
+  'technology',
+  'politics'
 ];
 
 export const useNews = (category: string = 'general') => {
@@ -86,6 +108,51 @@ export const useNews = (category: string = 'general') => {
     hasMore: data?.totalResults ? allArticles.length < data.totalResults : false,
     resetAndRefetch,
     categories: NEWS_CATEGORIES
+  };
+};
+
+export const useAIGeneratedArticles = (category: string, country: string = 'in') => {
+  const { data: aiArticles, isLoading, error, refetch } = useQuery({
+    queryKey: ['ai-articles', category, country],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_generated_articles')
+        .select('*')
+        .eq('category', category)
+        .eq('country', country)
+        .order('published_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      return data as AIGeneratedArticle[];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const generateArticles = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ai-news', {
+        body: { category, country, count: 3 }
+      });
+
+      if (error) throw error;
+      
+      // Refetch to get the new articles
+      refetch();
+      
+      return data;
+    } catch (error) {
+      console.error('Error generating AI articles:', error);
+      throw error;
+    }
+  };
+
+  return {
+    aiArticles,
+    isLoading,
+    error,
+    generateArticles,
+    refetch
   };
 };
 

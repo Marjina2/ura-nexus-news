@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_generated_articles: {
+        Row: {
+          author: string | null
+          category: string
+          content: string
+          country: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          published_at: string
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          author?: string | null
+          category: string
+          content: string
+          country?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          author?: string | null
+          category?: string
+          content?: string
+          country?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       cached_articles: {
         Row: {
           cached_at: string
