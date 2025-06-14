@@ -86,22 +86,27 @@ const Hero = () => {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12">
-            {[
-              { number: "10K+", label: "Daily Readers" },
-              { number: "500+", label: "News Sources" },
-              { number: "24/7", label: "Live Updates" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-ura-green mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-muted-foreground">
-                  {stat.label}
-                </div>
+          {/* Partnership and Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12">
+            {/* Reader Count */}
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-ура-green mb-2">
+                Growing Community
               </div>
-            ))}
+              <div className="text-muted-foreground">
+                Trusted Readers Daily
+              </div>
+            </div>
+            
+            {/* Google Partnership */}
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-ura-green mb-2">
+                Google Partner
+              </div>
+              <div className="text-muted-foreground">
+                AI Technology Partner
+              </div>
+            </div>
           </div>
         </div>
       </div>
