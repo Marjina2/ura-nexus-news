@@ -25,6 +25,33 @@ const AuthCallback = () => {
         }
 
         if (data.session) {
+          // Check for pending user data from OAuth signup
+          const pendingUserData = localStorage.getItem('pendingUserData');
+          
+          if (pendingUserData) {
+            try {
+              const userData = JSON.parse(pendingUserData);
+              
+              // Update user metadata with the collected data
+              const { error: updateError } = await supabase.auth.updateUser({
+                data: {
+                  username: userData.username,
+                  country: userData.country,
+                  full_name: userData.full_name
+                }
+              });
+              
+              if (updateError) {
+                console.error('Error updating user metadata:', updateError);
+              }
+              
+              localStorage.removeItem('pendingUserData');
+            } catch (parseError) {
+              console.error('Error parsing pending user data:', parseError);
+              localStorage.removeItem('pendingUserData');
+            }
+          }
+
           // Check if user has completed profile setup
           const { data: profile } = await supabase
             .from('profiles')
@@ -33,8 +60,11 @@ const AuthCallback = () => {
             .single();
 
           if (!profile) {
-            // User needs to complete profile setup
-            navigate('/complete-profile');
+            // If no profile exists but we have metadata, it will be created by the trigger
+            // Give it a moment and redirect to home
+            setTimeout(() => {
+              navigate('/');
+            }, 1000);
           } else {
             navigate('/');
           }
@@ -51,7 +81,7 @@ const AuthCallback = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-ura-black flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-ura-black via-gray-900 to-ura-black flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ura-green mx-auto mb-4"></div>
         <p className="text-ura-white">Completing authentication...</p>

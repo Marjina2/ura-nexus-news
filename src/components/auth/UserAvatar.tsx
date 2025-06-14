@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from 'lucide-react';
 
 interface UserAvatarProps {
   user: any;
@@ -24,8 +23,8 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, profile, size = 'md', cla
     }
     
     // Check for GitHub profile picture
-    if (user?.identities?.find(id => id.provider === 'github')?.identity_data?.avatar_url) {
-      return user.identities.find(id => id.provider === 'github').identity_data.avatar_url;
+    if (user?.identities?.find((id: any) => id.provider === 'github')?.identity_data?.avatar_url) {
+      return user.identities.find((id: any) => id.provider === 'github').identity_data.avatar_url;
     }
     
     // Check for custom avatar in profile
@@ -40,7 +39,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, profile, size = 'md', cla
     if (profile?.full_name) {
       return profile.full_name
         .split(' ')
-        .map(n => n[0])
+        .map((n: string) => n[0])
         .join('')
         .toUpperCase()
         .slice(0, 2);
@@ -58,9 +57,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, profile, size = 'md', cla
   };
 
   return (
-    <Avatar className={`${sizeClasses[size]} ${className}`}>
-      <AvatarImage src={getAvatarUrl() || ''} alt="User avatar" />
-      <AvatarFallback className="bg-ura-green text-ura-black font-semibold">
+    <Avatar className={`${sizeClasses[size]} ${className} ring-2 ring-ura-green/20 transition-all duration-200 hover:ring-ura-green/40`}>
+      <AvatarImage src={getAvatarUrl() || ''} alt="User avatar" className="object-cover" />
+      <AvatarFallback className="bg-gradient-to-br from-ura-green to-ura-green-hover text-ura-black font-semibold">
         {getInitials()}
       </AvatarFallback>
     </Avatar>
