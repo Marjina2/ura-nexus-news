@@ -21,8 +21,6 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = ['World', 'India', 'Tech', 'Politics', 'Science', 'Business', 'Sports'];
-
   // Check if user has Pro subscription (mock for now)
   const isPro = user?.publicMetadata?.subscription === 'pro';
 
@@ -60,28 +58,19 @@ const Header = () => {
               </SignedIn>
             </nav>
 
-            {/* Search & Auth - Desktop */}
+            {/* Auth & Search - Desktop */}
             <div className="hidden md:flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search news..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-card border-border focus:border-ura-green w-64"
-                />
-              </div>
-              
               <SignedOut>
                 <SignInButton mode="modal">
                   <Button variant="ghost" className="text-ura-white hover:text-ura-green">
                     Sign In
                   </Button>
                 </SignInButton>
-                <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
-                  Subscribe
-                </Button>
+                <SignInButton mode="modal">
+                  <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover">
+                    Sign Up
+                  </Button>
+                </SignInButton>
               </SignedOut>
 
               <SignedIn>
@@ -134,18 +123,6 @@ const Header = () => {
                     </SignedIn>
                   </div>
 
-                  {/* Mobile Search */}
-                  <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search news..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-
                   {/* Mobile Navigation */}
                   <nav className="space-y-4 mb-6">
                     <a href="/" className="block text-ura-white hover:text-ura-green transition-colors text-lg">Home</a>
@@ -160,21 +137,6 @@ const Header = () => {
                     </SignedIn>
                   </nav>
 
-                  {/* Mobile Categories */}
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">Categories</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {navItems.map((item) => (
-                        <button
-                          key={item}
-                          className="text-left text-sm text-muted-foreground hover:text-ura-green transition-colors p-2 rounded-md hover:bg-muted"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Mobile Auth */}
                   <div className="mt-auto space-y-3">
                     <SignedOut>
@@ -183,12 +145,13 @@ const Header = () => {
                           Sign In
                         </Button>
                       </SignInButton>
-                      <Button 
-                        className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
-                        onClick={() => window.location.href = '/pricing'}
-                      >
-                        Subscribe
-                      </Button>
+                      <SignInButton mode="modal">
+                        <Button 
+                          className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                        >
+                          Sign Up
+                        </Button>
+                      </SignInButton>
                     </SignedOut>
 
                     <SignedIn>
@@ -213,22 +176,6 @@ const Header = () => {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-        </div>
-
-        {/* Categories Bar - Desktop Only */}
-        <div className="hidden lg:block border-t border-white/10 bg-card/50 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-8 h-12 overflow-x-auto">
-              {navItems.map((item) => (
-                <button
-                  key={item}
-                  className="text-sm text-muted-foreground hover:text-ura-green transition-colors whitespace-nowrap"
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </header>
