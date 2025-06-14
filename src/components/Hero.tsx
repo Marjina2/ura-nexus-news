@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,29 @@ import { useAuth } from '@/contexts/AuthContext';
 const Hero = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [readerCount, setReaderCount] = useState(346);
+
+  useEffect(() => {
+    const targetCount = 678;
+    const startCount = 346;
+    const totalIncrements = targetCount - startCount;
+    let currentIncrement = 0;
+
+    const incrementReader = () => {
+      if (currentIncrement < totalIncrements) {
+        setReaderCount(prev => prev + 1);
+        currentIncrement++;
+        
+        // Random interval between 2-8 seconds
+        const randomDelay = Math.random() * 6000 + 2000;
+        setTimeout(incrementReader, randomDelay);
+      }
+    };
+
+    // Start the animation after initial load
+    const initialDelay = Math.random() * 3000 + 1000;
+    setTimeout(incrementReader, initialDelay);
+  }, []);
 
   const handleReadNewsClick = () => {
     if (user) {
@@ -18,6 +41,10 @@ const Hero = () => {
   };
 
   const handleGetLicenseClick = () => {
+    navigate('/pricing');
+  };
+
+  const handleUpgradeToProClick = () => {
     navigate('/pricing');
   };
 
@@ -79,10 +106,27 @@ const Hero = () => {
             </Button>
           </div>
 
+          {/* Upgrade to Pro Button for non-pro users */}
+          {user && user.publicMetadata?.subscription !== 'pro' && (
+            <div className="mb-8">
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white text-lg px-8 py-4"
+                onClick={handleUpgradeToProClick}
+              >
+                Upgrade to Pro
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </div>
+          )}
+
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-bold text-ura-green mb-2">346</div>
+              <div className="text-3xl font-bold text-ura-green mb-2 transition-all duration-500">
+                {readerCount}
+              </div>
               <div className="text-muted-foreground">Active Readers</div>
             </div>
             <div className="text-center">
