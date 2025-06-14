@@ -135,16 +135,12 @@ const Header = () => {
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                        <User className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/account-settings')}>
+                      <DropdownMenuItem onClick={() => navigate('/account')}>
                         <Settings className="mr-2 h-4 w-4" />
                         Settings
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut}>
+                      <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/50">
                         Sign out
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -228,7 +224,7 @@ const Header = () => {
                         <Button 
                           variant="outline" 
                           className="w-full"
-                          onClick={() => navigate('/account-settings')}
+                          onClick={() => navigate('/account')}
                         >
                           <Settings className="w-4 h-4 mr-2" />
                           Account Settings
