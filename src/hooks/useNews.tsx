@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,11 @@ export interface AIGeneratedArticle {
   tags: string[];
   is_active: boolean;
   created_at: string;
+}
+
+export interface EnhancedArticle extends NewsArticle {
+  enhanced?: boolean;
+  aiSummary?: string;
 }
 
 export const useNews = (category: string = 'general', country: string = 'in') => {
@@ -78,6 +84,54 @@ export const useNews = (category: string = 'general', country: string = 'in') =>
   };
 };
 
+export const useCachedArticles = () => {
+  return useQuery({
+    queryKey: ['cached-articles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cached_articles')
+        .select('*')
+        .order('cached_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+export const useEnhanceArticle = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const enhanceArticle = async (article: NewsArticle): Promise<EnhancedArticle> => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('enhance-article', {
+        body: { article }
+      });
+
+      if (error) throw error;
+
+      return {
+        ...article,
+        enhanced: true,
+        aiSummary: data?.summary
+      };
+    } catch (error) {
+      console.error('Error enhancing article:', error);
+      return article;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    enhanceArticle,
+    isLoading
+  };
+};
+
 export const useAIGeneratedArticles = (category: string, country: string) => {
   const [aiArticles, setAiArticles] = useState<AIGeneratedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +167,15 @@ export const useAIGeneratedArticles = (category: string, country: string) => {
         .limit(10);
 
       if (error) throw error;
-      return data as AIGeneratedArticle[];
+      
+      // Ensure all required fields are present
+      return data?.map(article => ({
+        ...article,
+        is_active: article.is_active ?? true,
+        tags: article.tags || [],
+        image_url: article.image_url || '',
+        published_at: article.published_at || article.created_at
+      })) as AIGeneratedArticle[];
     },
   });
 
