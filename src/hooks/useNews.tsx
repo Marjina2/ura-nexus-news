@@ -178,20 +178,23 @@ export const useAIGeneratedArticles = (category: string, country: string) => {
 
       if (error) throw error;
       
-      // Map database results to AIGeneratedArticle interface
-      const mappedArticles: AIGeneratedArticle[] = data?.map(article => ({
-        id: article.id,
-        title: article.title,
-        content: article.content,
-        summary: article.summary || '',
-        category: article.category,
-        country: article.country,
-        image_url: article.image_url || '',
-        published_at: article.published_at || article.created_at,
-        tags: article.tags || [],
-        is_active: true, // Default to active since we're only fetching records
-        created_at: article.created_at
-      })) || [];
+      // Explicitly type the mapped articles
+      const mappedArticles = data?.map(article => {
+        const mappedArticle: AIGeneratedArticle = {
+          id: article.id,
+          title: article.title,
+          content: article.content,
+          summary: article.summary || '',
+          category: article.category,
+          country: article.country,
+          image_url: article.image_url || '',
+          published_at: article.published_at || article.created_at,
+          tags: article.tags || [],
+          is_active: true, // Default to active since we're only fetching records
+          created_at: article.created_at
+        };
+        return mappedArticle;
+      }) || [];
 
       return mappedArticles;
     },
