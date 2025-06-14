@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, X, User, Bookmark, Settings, Crown } from 'lucide-react';
+import { Search, Menu, X, User, Bookmark, Settings, Crown, Mail } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,11 @@ const Header = () => {
 
   // Check if user has Pro subscription (mock for now)
   const isPro = user?.publicMetadata?.subscription === 'pro';
+
+  const handleSubscribe = () => {
+    // TODO: Integrate with Beehive newsletter subscription
+    console.log('Subscribe to newsletter - Beehive integration coming soon');
+  };
 
   return (
     <>
@@ -58,8 +63,19 @@ const Header = () => {
               </SignedIn>
             </nav>
 
-            {/* Auth & Search - Desktop */}
+            {/* Auth & Actions - Desktop */}
             <div className="hidden md:flex items-center space-x-4">
+              {/* Subscribe Button - Always visible */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-ura-white border-ura-green hover:bg-ura-green hover:text-ura-black"
+                onClick={handleSubscribe}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Subscribe
+              </Button>
+
               <SignedOut>
                 <SignInButton mode="modal">
                   <Button variant="ghost" className="text-ura-white hover:text-ura-green">
@@ -137,8 +153,18 @@ const Header = () => {
                     </SignedIn>
                   </nav>
 
-                  {/* Mobile Auth */}
+                  {/* Mobile Actions */}
                   <div className="mt-auto space-y-3">
+                    {/* Subscribe Button - Mobile */}
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black"
+                      onClick={handleSubscribe}
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Subscribe to Newsletter
+                    </Button>
+
                     <SignedOut>
                       <SignInButton mode="modal">
                         <Button variant="outline" className="w-full">
