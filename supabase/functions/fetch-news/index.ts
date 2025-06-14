@@ -14,40 +14,63 @@ serve(async (req) => {
 
   try {
     const { category = 'general', page = 1, country = 'in' } = await req.json()
-    const newsApiKey = Deno.env.get('NEWSAPI_KEY')
+    const newsdataApiKey = Deno.env.get('NEWSDATA_API_KEY')
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
-    if (!newsApiKey) {
-      throw new Error('NewsAPI key not configured')
+    if (!newsdataApiKey) {
+      throw new Error('NewsData API key not configured')
     }
 
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!)
 
-    // Fetch news from NewsAPI
-    const newsUrl = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&page=${page}&pageSize=10&apiKey=${newsApiKey}`
+    // Map categories to NewsData.io format
+    const categoryMap: { [key: string]: string } = {
+      'general': 'top',
+      'business': 'business',
+      'entertainment': 'entertainment',
+      'health': 'health',
+      'science': 'science',
+      'sports': 'sports',
+      'technology': 'technology'
+    }
+
+    const mappedCategory = categoryMap[category] || 'top'
+
+    // Fetch news from NewsData.io
+    const newsUrl = `https://newsdata.io/api/1/news?apikey=${newsdataApiKey}&country=${country}&category=${mappedCategory}&language=en&size=10&page=${page}`
     
     const newsResponse = await fetch(newsUrl)
     const newsData = await newsResponse.json()
 
     if (!newsResponse.ok) {
-      throw new Error(newsData.message || 'Failed to fetch news')
+      throw new Error(newsData.message || 'Failed to fetch news from NewsData.io')
     }
 
-    // Filter out articles with null/undefined content
-    const validArticles = newsData.articles.filter((article: any) => 
+    // Transform NewsData.io format to match our expected format
+    const transformedArticles = newsData.results?.map((article: any) => ({
+      title: article.title,
+      description: article.description,
+      url: article.link,
+      urlToImage: article.image_url,
+      publishedAt: article.pubDate,
+      source: {
+        name: article.source_id || 'Unknown'
+      },
+      content: article.content
+    })).filter((article: any) => 
       article.title && 
       article.description && 
       article.url &&
       article.title !== '[Removed]' &&
       article.description !== '[Removed]'
-    )
+    ) || []
 
-    // Enhance top articles (first 3) with Gemini and cache them
-    if (page === 1 && geminiApiKey && validArticles.length > 0) {
-      const topArticles = validArticles.slice(0, 3)
+    // Enhance top articles (first 3) with Gemini and Google rephrasing, then cache them
+    if (page === 1 && geminiApiKey && transformedArticles.length > 0) {
+      const topArticles = transformedArticles.slice(0, 3)
       
       for (const article of topArticles) {
         try {
@@ -59,8 +82,8 @@ serve(async (req) => {
             .single()
 
           if (!existingArticle) {
-            // Enhance with Gemini
-            const enhancedData = await enhanceWithGemini(article, geminiApiKey)
+            // Enhance with Gemini and Google rephrasing
+            const enhancedData = await enhanceWithGeminiAndRephrase(article, geminiApiKey)
             
             // Insert into cache
             await supabase
@@ -90,9 +113,9 @@ serve(async (req) => {
     }
 
     const response = {
-      articles: validArticles,
-      totalResults: newsData.totalResults,
-      status: newsData.status
+      articles: transformedArticles,
+      totalResults: newsData.totalResults || transformedArticles.length,
+      status: 'ok'
     }
 
     return new Response(
@@ -120,29 +143,36 @@ serve(async (req) => {
   }
 })
 
-async function enhanceWithGemini(article: any, geminiApiKey: string) {
+async function enhanceWithGeminiAndRephrase(article: any, geminiApiKey: string) {
   try {
     const prompt = `
-    You are an AI news editor specializing in SEO optimization. Please enhance this news article:
+    You are an AI news editor specializing in SEO optimization and content enhancement. Please enhance this news article with Google's text rephrasing approach:
     
     Original Title: ${article.title}
     Description: ${article.description}
     Content: ${article.content || article.description}
     
+    Instructions:
+    1. Rephrase the content using Google's approach: maintain meaning while improving clarity and engagement
+    2. Create SEO-optimized versions that sound natural and human-written
+    3. Ensure all rephrased content is unique and adds value
+    4. Keep factual accuracy while improving readability
+    
     Please provide a response in this exact JSON format:
     {
-      "enhancedTitle": "An SEO-optimized, engaging title that includes relevant keywords",
-      "summary": "A clear 2-3 sentence summary optimized for search engines",
-      "keyPoints": ["point 1", "point 2", "point 3"],
-      "enhancedContent": "Enhanced article content with better structure, readability, and SEO optimization",
+      "enhancedTitle": "An SEO-optimized, engaging title using Google rephrasing techniques",
+      "summary": "A clear 2-3 sentence summary rephrased for better engagement and SEO",
+      "keyPoints": ["rephrased key point 1", "rephrased key point 2", "rephrased key point 3"],
+      "enhancedContent": "Fully rephrased article content with improved structure, readability, and natural language flow while maintaining all original facts",
       "tags": ["relevant", "seo", "keywords"]
     }
     
     Focus on:
-    - SEO-friendly titles with relevant keywords
-    - Clear, engaging content structure
-    - Improved readability while maintaining accuracy
-    - Relevant tags for better categorization
+    - Natural, human-like rephrasing that passes AI detection
+    - SEO-friendly content without keyword stuffing
+    - Improved sentence structure and flow
+    - Enhanced readability while maintaining journalistic integrity
+    - Google's E-A-T (Expertise, Authoritativeness, Trustworthiness) principles
     `
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`
@@ -175,12 +205,12 @@ async function enhanceWithGemini(article: any, geminiApiKey: string) {
     console.log('Gemini enhancement failed:', error)
   }
 
-  // Fallback enhancement
+  // Fallback enhancement with basic rephrasing
   return {
-    enhancedTitle: article.title,
-    summary: article.description,
-    keyPoints: [article.title],
-    enhancedContent: article.content || article.description,
-    tags: ['news', 'breaking']
+    enhancedTitle: `Breaking: ${article.title}`,
+    summary: `Latest update: ${article.description}`,
+    keyPoints: [article.title, `Source: ${article.source.name}`, 'Breaking news update'],
+    enhancedContent: `In a recent development, ${article.content || article.description} This story continues to develop as more information becomes available.`,
+    tags: ['breaking', 'news', 'latest']
   }
 }
