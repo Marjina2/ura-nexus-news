@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { NewsArticle, useNews } from '@/hooks/useNews';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import UpdateSpotlightImageButton from '@/components/UpdateSpotlightImageButton';
 
 const News = () => {
   const navigate = useNavigate();
@@ -55,6 +55,9 @@ const News = () => {
             categories={categories}
             onCategoryChange={setSelectedCategory}
           />
+
+          {/* TEMP ADMIN SPOTLIGHT IMAGE REFRESH (remove when not needed) */}
+          <UpdateSpotlightImageButton />
 
           {/* AI News Section */}
           <div className="scroll-slide-left">
