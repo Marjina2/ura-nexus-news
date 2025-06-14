@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from '@/pages/Home';
+import Index from '@/pages/Index';
 import About from '@/pages/About';
 import Pricing from '@/pages/Pricing';
 import Contact from '@/pages/Contact';
@@ -9,12 +10,10 @@ import Auth from '@/pages/Auth';
 import AccountSettings from '@/pages/AccountSettings';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import ArticleDetail from '@/pages/ArticleDetail';
-import Spotlight from '@/pages/Spotlight';
+import Article from '@/pages/Article';
 import Categories from '@/pages/Categories';
-import CategoryDetail from '@/pages/CategoryDetail';
 import AIPicks from '@/pages/AIPicks';
 import Search from '@/pages/Search';
 import AuthCallback from '@/pages/AuthCallback';
@@ -23,7 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
 
-function App() {
+function AppContent() {
   const { needsProfileCompletion, loading } = useAuth();
 
   if (loading) {
@@ -40,29 +39,35 @@ function App() {
   }
 
   return (
+    <div className="min-h-screen bg-ura-black text-ura-white">
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/account" element={<AccountSettings />} />
+          <Route path="/article" element={<Article />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/ai-picks" element={<AIPicks />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+      <Toaster />
+    </div>
+  );
+}
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-ura-black text-ura-white">
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/account" element={<AccountSettings />} />
-            <Route path="/article/:url" element={<ArticleDetail />} />
-            <Route path="/spotlight" element={<Spotlight />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/category/:category" element={<CategoryDetail />} />
-            <Route path="/ai-picks" element={<AIPicks />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </div>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
