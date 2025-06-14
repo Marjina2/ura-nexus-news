@@ -1,10 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, MapPin, Clock, Eye, ExternalLink, TrendingUp } from 'lucide-react';
-import SpotlightStats from './SpotlightStats';
+import { Clock, MapPin, ExternalLink, AlertTriangle, TrendingUp, Eye } from 'lucide-react';
 
 interface SpotlightArticle {
   id: string;
@@ -27,11 +25,10 @@ interface SpotlightArticle {
 
 interface SpotlightCardProps {
   article: SpotlightArticle;
-  index: number;
   onRead: (article: SpotlightArticle) => void;
 }
 
-const SpotlightCard = ({ article, index, onRead }: SpotlightCardProps) => {
+const SpotlightCard = ({ article, onRead }: SpotlightCardProps) => {
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
     const published = new Date(dateString);
@@ -64,77 +61,64 @@ const SpotlightCard = ({ article, index, onRead }: SpotlightCardProps) => {
   };
 
   return (
-    <Card 
-      className={`group bg-card/40 backdrop-blur-sm border-2 border-border/50 hover:border-red-500/50 
-        transition-all duration-500 hover:scale-105 cursor-pointer overflow-hidden relative
-        hover:shadow-2xl hover:shadow-red-500/25 ${
-        index === 0 ? 'md:col-span-2 md:row-span-2' : ''
-      }`}
+    <div 
+      className="flex flex-col lg:flex-row gap-6 bg-card/20 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden hover:border-red-500/50 transition-all duration-300 cursor-pointer group hover-lift" 
       onClick={() => onRead(article)}
     >
-      <div className="absolute top-4 left-4 z-10">
-        <Badge className={`${getPriorityColor(article.priority)} text-white shadow-lg border-0`}>
-          {getEventTypeIcon(article.event_type)}
-          <span className="ml-1 capitalize font-medium">{article.event_type}</span>
-        </Badge>
-      </div>
-
-      <div className="absolute top-4 right-4 z-10">
-        <div className="flex items-center space-x-1 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-          <span>LIVE</span>
-        </div>
-      </div>
-
-      <div className="relative">
+      {/* Left Side - Image */}
+      <div className="relative lg:w-80 h-48 lg:h-auto overflow-hidden">
         <img
-          src={article.image_url || 'https://images.unsplash.com/photo-1544963813-d0c8aed83b37?w=800&h=600&fit=crop'}
+          src={article.image_url}
           alt={article.title}
-          className={`w-full object-cover transition-all duration-500 group-hover:scale-110 ${
-            index === 0 ? 'h-80' : 'h-56'
-          }`}
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black/95 transition-all duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
         
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2 text-sm text-white/80">
-              <Clock className="w-4 h-4" />
-              <span>{formatTimeAgo(article.updated_at)}</span>
-            </div>
-            {article.location && (
-              <div className="flex items-center space-x-1 text-sm text-white/80">
-                <MapPin className="w-4 h-4" />
-                <span className="truncate max-w-20">{article.location}</span>
-              </div>
-            )}
+        {/* Badges on image */}
+        <div className="absolute top-4 left-4">
+          <Badge className={`${getPriorityColor(article.priority)} text-white shadow-lg border-0`}>
+            {getEventTypeIcon(article.event_type)}
+            <span className="ml-1 capitalize font-medium">{article.event_type}</span>
+          </Badge>
+        </div>
+        
+        <div className="absolute top-4 right-4">
+          <div className="flex items-center space-x-1 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <span>LIVE</span>
           </div>
         </div>
       </div>
 
-      <CardContent className="p-6">
-        <h3 className={`font-bold text-ura-white mb-3 group-hover:text-red-400 transition-colors duration-300 ${
-          index === 0 ? 'text-2xl line-clamp-2' : 'text-lg line-clamp-2'
-        }`}>
+      {/* Right Side - Content */}
+      <div className="flex-1 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4 text-sm text-white/80">
+            <div className="flex items-center space-x-1">
+              <Clock className="w-4 h-4" />
+              <span>{formatTimeAgo(article.updated_at)}</span>
+            </div>
+            {article.location && (
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span>{article.location}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <h3 className="text-2xl font-bold text-ura-white mb-4 group-hover:text-red-400 transition-colors duration-300 line-clamp-2">
           {article.title}
         </h3>
 
-        <p className={`text-muted-foreground mb-4 leading-relaxed ${
-          index === 0 ? 'line-clamp-3' : 'line-clamp-2'
-        }`}>
+        <p className="text-muted-foreground mb-6 leading-relaxed line-clamp-3">
           {article.summary}
         </p>
 
-        <SpotlightStats 
-          liveUpdates={article.live_updates}
-          videoUrls={article.video_urls}
-          casualtiesCount={article.casualties_count}
-          emergencyContacts={article.emergency_contacts}
-        />
-
+        {/* Tags */}
         {article.tags && article.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {article.tags.slice(0, 3).map((tag, i) => (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {article.tags.slice(0, 4).map((tag, i) => (
               <Badge key={i} variant="outline" className="text-xs border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
                 #{tag}
               </Badge>
@@ -143,14 +127,14 @@ const SpotlightCard = ({ article, index, onRead }: SpotlightCardProps) => {
         )}
 
         <Button
-          className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-          size="sm"
+          className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+          size="lg"
         >
           Read Full Coverage
           <ExternalLink className="w-4 h-4 ml-2" />
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

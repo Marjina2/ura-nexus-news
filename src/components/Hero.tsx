@@ -4,16 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Sparkles, Zap, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const Hero = () => {
   const navigate = useNavigate();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const words = ['News', 'Insights', 'Stories', 'Analysis', 'Updates'];
+  useScrollAnimation();
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentWordIndex((prevIndex) => (prevIndex + 1) % words.length);
-    }, 2000); // Change word every 2 seconds
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [words.length]);
@@ -22,27 +24,23 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-plusee-black via-plusee-black to-purple-900/20 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        {/* Animated Background Circles */}
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-plusee-green/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-128 h-128 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-2000" />
-        
-        {/* Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(64,224,208,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(64,224,208,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Main Content */}
         <div className="space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 bg-plusee-green/10 backdrop-blur-sm border border-plusee-green/20 rounded-full px-4 py-2">
+          <div className="scroll-fade-in inline-flex items-center space-x-2 bg-plusee-green/10 backdrop-blur-sm border border-plusee-green/20 rounded-full px-4 py-2">
             <Sparkles className="w-4 h-4 text-plusee-green" />
             <span className="text-sm text-plusee-white">AI-Powered News Platform</span>
           </div>
 
           {/* Main Heading with Animated Text */}
           <div className="space-y-6 py-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-[1.15] pb-2">
+            <h1 className="scroll-scale-in text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-[1.15] pb-2">
               <span 
                 key={currentWordIndex}
                 className="inline-block gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent animate-fade-in pb-1"
@@ -58,14 +56,14 @@ const Hero = () => {
               Beyond Headlines
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed pt-4">
+            <p className="scroll-fade-in text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed pt-4">
               Experience journalism enhanced by artificial intelligence. Get deeper insights, 
               comprehensive analysis, and personalized news from trusted sources across India.
             </p>
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3 pt-4">
+          <div className="scroll-slide-left flex flex-wrap justify-center gap-3 pt-4">
             {[
               { icon: Zap, text: "Real-time Updates" },
               { icon: Globe, text: "India-focused" },
@@ -74,7 +72,8 @@ const Hero = () => {
               <Badge 
                 key={index}
                 variant="secondary" 
-                className="bg-card/50 backdrop-blur-sm border-plusee-green/20 text-plusee-white px-4 py-2"
+                className="bg-card/50 backdrop-blur-sm border-plusee-green/20 text-plusee-white px-4 py-2 stagger-animation"
+                style={{ '--animation-order': index } as React.CSSProperties}
               >
                 <feature.icon className="w-3 h-3 mr-2" />
                 {feature.text}
@@ -83,10 +82,10 @@ const Hero = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-6">
+          <div className="scroll-slide-right flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-6">
             <Button 
               size="lg" 
-              className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover font-semibold px-8 py-4 text-lg group"
+              className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover font-semibold px-8 py-4 text-lg group hover-lift"
               onClick={() => navigate('/news')}
             >
               Read Now
@@ -96,7 +95,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-plusee-green text-plusee-green hover:bg-plusee-green hover:text-plusee-black px-8 py-4 text-lg"
+              className="border-plusee-green text-plusee-green hover:bg-plusee-green hover:text-plusee-black px-8 py-4 text-lg hover-lift"
               onClick={() => navigate('/about')}
             >
               Learn More
@@ -104,9 +103,8 @@ const Hero = () => {
           </div>
 
           {/* Partnership and Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12">
-            {/* Reader Count */}
-            <div className="text-center">
+          <div className="scroll-fade-in grid grid-cols-1 md:grid-cols-2 gap-8 pt-12">
+            <div className="text-center scroll-slide-left">
               <div className="text-3xl md:text-4xl font-bold text-plusee-green mb-2">
                 Growing Community
               </div>
@@ -115,8 +113,7 @@ const Hero = () => {
               </div>
             </div>
             
-            {/* Google Partnership */}
-            <div className="text-center">
+            <div className="text-center scroll-slide-right">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <svg 
                   className="w-8 h-8" 
@@ -153,7 +150,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Bottom Fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-plusee-black to-transparent" />
     </section>
   );
