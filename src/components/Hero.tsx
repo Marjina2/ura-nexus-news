@@ -13,7 +13,7 @@ const Hero = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentWordIndex((prevIndex) => (prevIndex + 1) % words.length);
-    }, 3000); // Slowed down to change word every 3 seconds
+    }, 2000); // Change word every 2 seconds
 
     return () => clearInterval(interval);
   }, [words.length]);
@@ -43,13 +43,11 @@ const Hero = () => {
           {/* Main Heading with Animated Text */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-ura-white leading-tight">
-              <span className="inline-block min-w-[200px] md:min-w-[300px] lg:min-w-[400px] text-left">
-                <span 
-                  key={currentWordIndex}
-                  className="gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
-                >
-                  {words[currentWordIndex]}
-                </span>
+              <span 
+                key={currentWordIndex}
+                className="inline-block gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
+              >
+                {words[currentWordIndex]}
               </span>{' '}
               That{' '}
               <span className="gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent">
