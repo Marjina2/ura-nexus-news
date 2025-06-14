@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ClerkProvider } from '@clerk/clerk-react';
+import { AuthProvider } from "@/contexts/AuthContext";
 import SecurityWrapper from "./components/SecurityWrapper";
 import Index from "./pages/Index";
 import News from "./pages/News";
@@ -13,17 +13,17 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Article from "./pages/Article";
+import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
+import AccountSettings from "./pages/AccountSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Clerk publishable key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_c21hcnQtYmVhdmVyLTc5LmNsZXJrLmFjY291bnRzLmRldiQ';
-
 const App = () => (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
         <SecurityWrapper>
           <Toaster />
           <Sonner />
@@ -36,14 +36,17 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/article" element={<Article />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/account-settings" element={<AccountSettings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </SecurityWrapper>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ClerkProvider>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
