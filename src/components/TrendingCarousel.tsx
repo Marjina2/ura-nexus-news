@@ -113,6 +113,16 @@ const TrendingCarousel = () => {
                     Hot
                   </Badge>
                 </div>
+                <div className="absolute bottom-3 right-3">
+                  <Button
+                    onClick={() => handleArticleRead(article)}
+                    className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                    size="sm"
+                  >
+                    <BookOpen className="w-3 h-3 mr-1" />
+                    Read
+                  </Button>
+                </div>
               </div>
               
               <CardContent className="p-4">
@@ -122,21 +132,13 @@ const TrendingCarousel = () => {
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                   {article.description}
                 </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
                     <span>5 min read</span>
                   </div>
                   <span>{formatTimeAgo(article.publishedAt)}</span>
                 </div>
-                <Button
-                  onClick={() => handleArticleRead(article)}
-                  className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
-                  size="sm"
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Read Article
-                </Button>
               </CardContent>
             </Card>
           ))}
