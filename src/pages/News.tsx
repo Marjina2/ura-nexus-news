@@ -52,11 +52,8 @@ const News = () => {
             Back to Home
           </Button>
 
-          {/* Today's Spotlight Section - Moved to top */}
-          <SpotlightSection />
-
           {/* Page Header */}
-          <div className="text-center mb-8 mt-16">
+          <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
               Latest Fresh News
             </h1>
@@ -132,6 +129,9 @@ const News = () => {
               ))}
             </div>
           </div>
+
+          {/* Today's Spotlight Section */}
+          <SpotlightSection />
 
           {/* News Feed */}
           <NewsFeed 
