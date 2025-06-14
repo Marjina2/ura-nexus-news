@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +48,9 @@ export interface AIGeneratedArticle {
   updated_at: string;
   view_count: number;
   is_featured: boolean;
+  auto_generated: boolean;
+  generation_batch_id: string;
+  next_generation_time: string;
 }
 
 const NEWS_CATEGORIES = [
@@ -107,6 +111,13 @@ export const useNews = (category: string = 'general', country: string = 'in') =>
       }
     }
   }, [data, page]);
+
+  // Reset when category or country changes
+  useEffect(() => {
+    setPage(1);
+    setAllArticles([]);
+    setSeenUrls(new Set());
+  }, [category, country]);
 
   const loadMore = () => {
     console.log('Loading more articles, current page:', page);

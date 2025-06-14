@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsFeed from '@/components/NewsFeed';
+import SpotlightSection from '@/components/SpotlightSection';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Globe, Filter } from 'lucide-react';
@@ -13,7 +14,7 @@ const News = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('general');
   const [selectedCountry, setSelectedCountry] = useState('in');
-  const { categories } = useNews();
+  const { categories } = useNews(selectedCategory, selectedCountry);
 
   const countries = [
     { code: 'in', name: 'India' },
@@ -51,13 +52,16 @@ const News = () => {
             Back to Home
           </Button>
 
+          {/* Today's Spotlight Section */}
+          <SpotlightSection />
+
           {/* Page Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 mt-16">
             <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
               Latest Fresh News
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Stay updated with fresh, unique news powered by Gemini AI from trusted sources across various categories
+              Stay updated with fresh, unique news powered by our top AI models from trusted sources across various categories
             </p>
           </div>
 

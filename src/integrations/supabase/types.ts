@@ -12,13 +12,16 @@ export type Database = {
       ai_generated_articles: {
         Row: {
           author: string | null
+          auto_generated: boolean | null
           category: string
           content: string
           country: string
           created_at: string
+          generation_batch_id: string | null
           id: string
           image_url: string | null
           is_featured: boolean | null
+          next_generation_time: string | null
           published_at: string
           seo_description: string | null
           seo_keywords: string[] | null
@@ -31,13 +34,16 @@ export type Database = {
         }
         Insert: {
           author?: string | null
+          auto_generated?: boolean | null
           category: string
           content: string
           country?: string
           created_at?: string
+          generation_batch_id?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
+          next_generation_time?: string | null
           published_at?: string
           seo_description?: string | null
           seo_keywords?: string[] | null
@@ -50,13 +56,16 @@ export type Database = {
         }
         Update: {
           author?: string | null
+          auto_generated?: boolean | null
           category?: string
           content?: string
           country?: string
           created_at?: string
+          generation_batch_id?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
+          next_generation_time?: string | null
           published_at?: string
           seo_description?: string | null
           seo_keywords?: string[] | null
@@ -201,6 +210,69 @@ export type Database = {
         }
         Relationships: []
       }
+      spotlight_articles: {
+        Row: {
+          casualties_count: number | null
+          content: string
+          created_at: string
+          emergency_contacts: Json | null
+          event_type: string
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          live_updates: Json[] | null
+          location: string | null
+          priority: number | null
+          sources: Json[] | null
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          video_urls: string[] | null
+        }
+        Insert: {
+          casualties_count?: number | null
+          content: string
+          created_at?: string
+          emergency_contacts?: Json | null
+          event_type: string
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          live_updates?: Json[] | null
+          location?: string | null
+          priority?: number | null
+          sources?: Json[] | null
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          video_urls?: string[] | null
+        }
+        Update: {
+          casualties_count?: number | null
+          content?: string
+          created_at?: string
+          emergency_contacts?: Json | null
+          event_type?: string
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          live_updates?: Json[] | null
+          location?: string | null
+          priority?: number | null
+          sources?: Json[] | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          video_urls?: string[] | null
+        }
+        Relationships: []
+      }
       user_bookmarks: {
         Row: {
           article_url: string
@@ -239,6 +311,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_spotlight: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       increment_article_views: {
         Args: { article_url: string }
         Returns: undefined
