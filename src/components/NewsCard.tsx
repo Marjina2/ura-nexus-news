@@ -24,10 +24,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
   };
 
   const getImageUrl = (url: string | null) => {
-    if (!url) return '/placeholder.svg';
+    if (!url) return 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
     // Handle relative URLs
     if (url.startsWith('//')) return `https:${url}`;
-    if (url.startsWith('/')) return `https://via.placeholder.com/400x200?text=News+Image`;
+    if (url.startsWith('/')) return `https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop`;
     return url;
   };
 
@@ -35,12 +35,12 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
     <Card className="bg-card border-border hover:border-ura-green/30 transition-all duration-300 group">
       <div className="relative overflow-hidden rounded-t-lg">
         <img 
-          src={getImageUrl(article.urlToImage)}
+          src={getImageUrl(article.urlToImage || article.image_url)}
           alt={article.title}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = '/placeholder.svg';
+            target.src = 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
           }}
         />
         <div className="absolute top-3 left-3">
@@ -53,7 +53,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
           <Clock className="w-4 h-4" />
-          {formatDate(article.publishedAt)}
+          {formatDate(article.publishedAt || article.published_at || '')}
         </div>
         
         <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
