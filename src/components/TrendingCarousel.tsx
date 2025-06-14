@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, TrendingUp, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNews } from '@/hooks/useNews';
 
@@ -10,10 +11,7 @@ const TrendingCarousel = () => {
   const navigate = useNavigate();
   const { articles, isLoading, error } = useNews('general');
 
-  console.log('TrendingCarousel - articles:', articles?.length, 'isLoading:', isLoading, 'error:', error);
-
-  const handleArticleClick = (article: any) => {
-    console.log('Article clicked:', article.title);
+  const handleArticleRead = (article: any) => {
     const articleData = encodeURIComponent(JSON.stringify(article));
     navigate(`/article?data=${articleData}`);
   };
@@ -72,7 +70,6 @@ const TrendingCarousel = () => {
   return (
     <section className="py-16 bg-card/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <TrendingUp className="w-6 h-6 text-ura-green" />
@@ -89,13 +86,11 @@ const TrendingCarousel = () => {
           </button>
         </div>
 
-        {/* Trending Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {trendingArticles.map((article, index) => (
             <Card 
               key={`${article.url}-${index}`}
-              className="group bg-card border-border hover-lift cursor-pointer overflow-hidden"
-              onClick={() => handleArticleClick(article)}
+              className="group bg-card border-border hover-lift overflow-hidden"
             >
               <div className="relative">
                 <img
@@ -121,19 +116,27 @@ const TrendingCarousel = () => {
               </div>
               
               <CardContent className="p-4">
-                <h3 className="font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
+                <h3 className="font-semibold text-ura-white mb-2 line-clamp-2">
                   {article.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                   {article.description}
                 </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
                     <span>5 min read</span>
                   </div>
                   <span>{formatTimeAgo(article.publishedAt)}</span>
                 </div>
+                <Button
+                  onClick={() => handleArticleRead(article)}
+                  className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                  size="sm"
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Read Article
+                </Button>
               </CardContent>
             </Card>
           ))}

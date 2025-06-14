@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Hero = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [readerCount, setReaderCount] = useState(346);
 
   useEffect(() => {
@@ -21,13 +21,11 @@ const Hero = () => {
         setReaderCount(prev => prev + 1);
         currentIncrement++;
         
-        // Random interval between 2-8 seconds
         const randomDelay = Math.random() * 6000 + 2000;
         setTimeout(incrementReader, randomDelay);
       }
     };
 
-    // Start the animation after initial load
     const initialDelay = Math.random() * 3000 + 1000;
     setTimeout(incrementReader, initialDelay);
   }, []);
@@ -41,10 +39,6 @@ const Hero = () => {
   };
 
   const handleGetLicenseClick = () => {
-    navigate('/pricing');
-  };
-
-  const handleUpgradeToProClick = () => {
     navigate('/pricing');
   };
 
@@ -105,21 +99,6 @@ const Hero = () => {
               <FileText className="ml-2 w-5 h-5" />
             </Button>
           </div>
-
-          {/* Upgrade to Pro Button for users without pro subscription */}
-          {user && profile && !profile.subscription && (
-            <div className="mb-8">
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white text-lg px-8 py-4"
-                onClick={handleUpgradeToProClick}
-              >
-                Upgrade to Pro
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </div>
-          )}
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">

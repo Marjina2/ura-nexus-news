@@ -16,30 +16,33 @@ const Article = () => {
   const { enhanceArticle } = useEnhanceArticle();
   const [article, setArticle] = useState<EnhancedArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const articleData = searchParams.get('data');
     if (articleData) {
       try {
         const parsedArticle = JSON.parse(decodeURIComponent(articleData));
-        setIsLoading(true);
+        setArticle(parsedArticle);
+        setIsLoading(false);
+        setError(null);
         
-        // Enhance the article with Gemini
+        // Try to enhance the article in the background
         enhanceArticle(parsedArticle).then((enhanced) => {
           setArticle(enhanced);
-          setIsLoading(false);
-        }).catch(() => {
-          setArticle(parsedArticle);
-          setIsLoading(false);
+        }).catch((err) => {
+          console.warn('Failed to enhance article:', err);
         });
       } catch (error) {
         console.error('Error parsing article data:', error);
-        navigate('/');
+        setError('Failed to load article');
+        setIsLoading(false);
       }
     } else {
-      navigate('/');
+      setError('No article data found');
+      setIsLoading(false);
     }
-  }, [searchParams, navigate, enhanceArticle]);
+  }, [searchParams, enhanceArticle]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -86,13 +89,15 @@ const Article = () => {
     );
   }
 
-  if (!article) {
+  if (error || !article) {
     return (
       <div className="min-h-screen bg-ura-black">
         <Header />
         <main className="pt-32 pb-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-2xl font-bold text-ura-white mb-4">Article not found</h1>
+            <h1 className="text-2xl font-bold text-ura-white mb-4">
+              {error || 'Article not found'}
+            </h1>
             <Button onClick={() => navigate('/')} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -110,7 +115,6 @@ const Article = () => {
       
       <main className="pt-32 pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back button */}
           <Button 
             onClick={() => navigate('/')} 
             variant="ghost" 
@@ -121,7 +125,6 @@ const Article = () => {
           </Button>
 
           <Card className="bg-card border-border">
-            {/* Article Image */}
             {article.urlToImage && (
               <div className="relative overflow-hidden rounded-t-lg">
                 <img 
@@ -130,14 +133,13 @@ const Article = () => {
                   className="w-full h-64 md:h-96 object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder.svg';
+                    target.src = 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
                   }}
                 />
               </div>
             )}
 
             <CardHeader className="space-y-4">
-              {/* Source and Date */}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <Badge variant="secondary" className="bg-ura-green text-ura-black">
                   {article.source.name}
@@ -148,19 +150,16 @@ const Article = () => {
                 </div>
               </div>
 
-              {/* Title */}
               <h1 className="text-3xl md:text-4xl font-bold text-ura-white leading-tight">
                 {article.enhancedTitle || article.title}
               </h1>
 
-              {/* Summary */}
-              {article.summary && (
+              {(article.summary || article.description) && (
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  {article.summary}
+                  {article.summary || article.description}
                 </p>
               )}
 
-              {/* Tags */}
               {article.tags && article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {article.tags.map((tag, index) => (
@@ -171,7 +170,6 @@ const Article = () => {
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={() => window.open(article.url, '_blank')}
@@ -192,7 +190,6 @@ const Article = () => {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {/* Key Points */}
               {article.keyPoints && article.keyPoints.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-ura-white mb-3">Key Points</h2>
@@ -207,7 +204,6 @@ const Article = () => {
                 </div>
               )}
 
-              {/* Enhanced Content */}
               <div>
                 <h2 className="text-xl font-semibold text-ura-white mb-3">Article Content</h2>
                 <div className="prose prose-invert max-w-none">
@@ -217,7 +213,6 @@ const Article = () => {
                 </div>
               </div>
 
-              {/* Original Source Link */}
               <div className="border-t border-border pt-6">
                 <p className="text-sm text-muted-foreground mb-2">
                   This article was originally published by {article.source.name}
