@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Zap, MapPin, Clock, ExternalLink, AlertTriangle, TrendingUp, Eye } from 'lucide-react';
+import { useSerpApi } from '@/hooks/useSerpApi';
 
 interface SpotlightArticle {
   id: string;
@@ -30,6 +31,8 @@ const SpotlightSection = () => {
   const navigate = useNavigate();
   const [liveUpdateCount, setLiveUpdateCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [serpImage, setSerpImage] = useState<string | null>(null);
+  const { searchImages } = useSerpApi();
 
   // Update current time every minute
   useEffect(() => {
@@ -57,6 +60,29 @@ const SpotlightSection = () => {
     staleTime: 1 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,
   });
+
+  // Fetch SERP image when spotlight article changes
+  useEffect(() => {
+    const fetchSerpImage = async () => {
+      if (spotlightArticles && spotlightArticles.length > 0) {
+        const article = spotlightArticles[0];
+        const serpApiKey = localStorage.getItem('serpApiKey');
+        
+        if (serpApiKey) {
+          try {
+            const images = await searchImages(article.title, serpApiKey);
+            if (images.length > 0) {
+              setSerpImage(images[0].original);
+            }
+          } catch (error) {
+            console.error('Error fetching SERP image:', error);
+          }
+        }
+      }
+    };
+
+    fetchSerpImage();
+  }, [spotlightArticles, searchImages]);
 
   // Set up real-time updates
   useEffect(() => {
@@ -144,15 +170,11 @@ const SpotlightSection = () => {
   }
 
   const mainArticle = spotlightArticles[0];
+  const imageUrl = serpImage || mainArticle.image_url || 'https://images.unsplash.com/photo-1544963813-d0c8aed83b37?w=800&h=600&fit=crop';
 
   return (
     <section className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-      <div 
-        className="absolute inset-0 opacity-10 animate-pulse" 
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='%23ffffff05' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`
-        }} 
-      />
+      <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -184,7 +206,7 @@ const SpotlightSection = () => {
           {/* Left Side - Image */}
           <div className="relative lg:w-80 h-48 lg:h-auto overflow-hidden">
             <img
-              src={mainArticle.image_url || 'https://images.unsplash.com/photo-1544963813-d0c8aed83b37?w=800&h=600&fit=crop'}
+              src={imageUrl}
               alt={mainArticle.title}
               className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
             />
@@ -231,22 +253,6 @@ const SpotlightSection = () => {
               {mainArticle.summary}
             </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              {mainArticle.live_updates && mainArticle.live_updates.length > 0 && (
-                <div className="flex items-center space-x-1 text-xs text-blue-400 bg-blue-500/10 px-3 py-2 rounded-lg">
-                  <Eye className="w-3 h-3" />
-                  <span>{mainArticle.live_updates.length} updates</span>
-                </div>
-              )}
-              {mainArticle.video_urls && mainArticle.video_urls.length > 0 && (
-                <div className="flex items-center space-x-1 text-xs text-green-400 bg-green-500/10 px-3 py-2 rounded-lg">
-                  <ExternalLink className="w-3 h-3" />
-                  <span>{mainArticle.video_urls.length} videos</span>
-                </div>
-              )}
-            </div>
-
             {/* Tags */}
             {mainArticle.tags && mainArticle.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
@@ -273,7 +279,7 @@ const SpotlightSection = () => {
           <div className="inline-flex items-center space-x-2 bg-card/20 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <p className="text-sm text-muted-foreground">
-              Auto-refresh every 10 minutes • Next update in {Math.ceil((10 - (new Date().getMinutes() % 10)))} min
+              Auto-refresh every 10 minutes • Enhanced with SERP API images
             </p>
           </div>
         </div>

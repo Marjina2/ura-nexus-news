@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsFeed from '@/components/NewsFeed';
 import SpotlightSection from '@/components/SpotlightSection';
+import AINewsSection from '@/components/AINewsSection';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Globe, Filter } from 'lucide-react';
@@ -51,6 +52,12 @@ const News = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
+
+          {/* AI News Section - Moved to top */}
+          <AINewsSection 
+            category={selectedCategory}
+            country={selectedCountry}
+          />
 
           {/* Page Header */}
           <div className="text-center mb-8">

@@ -1,13 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, RefreshCw, Crown } from 'lucide-react';
+import { Sparkles, RefreshCw, Crown, Zap } from 'lucide-react';
 import NewsCard from './NewsCard';
 import { useNews, NewsArticle, useAIGeneratedArticles } from '@/hooks/useNews';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useSerpApi } from '@/hooks/useSerpApi';
 
 interface NewsFeedProps {
   category: string;
@@ -19,13 +19,14 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
   const { articles, isLoading, error, loadMore, hasMore } = useNews(category, country);
   const { aiArticles, isLoading: aiLoading, generateArticles } = useAIGeneratedArticles(category, country);
   const { user } = useAuth();
+  const { searchNews, isLoading: serpLoading } = useSerpApi();
+  const [serpArticles, setSerpArticles] = useState<NewsArticle[]>([]);
 
-  // Check if user has premium access (for now, we'll assume all authenticated users are premium)
+  // Check if user has premium access
   const isPremiumUser = !!user;
 
   const generateAINews = async () => {
     if (!isPremiumUser) {
-      // Redirect to pricing or show premium modal
       window.location.href = '/pricing';
       return;
     }
@@ -36,6 +37,37 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
       console.error('Error generating AI news:', error);
     }
   };
+
+  // Fetch SERP news with priority
+  useEffect(() => {
+    const fetchSerpNews = async () => {
+      const serpApiKey = localStorage.getItem('serpApiKey');
+      if (serpApiKey && isPremiumUser) {
+        try {
+          const query = `${category} news ${country === 'in' ? 'India' : country}`;
+          const serpResults = await searchNews(query, serpApiKey);
+          
+          const convertedArticles = serpResults.map((result, index) => ({
+            id: `serp-${index}`,
+            title: result.title,
+            description: result.snippet,
+            url: result.link,
+            urlToImage: result.thumbnail || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop',
+            publishedAt: result.date,
+            source: { name: result.source },
+            content: result.snippet,
+            isSERP: true
+          }));
+
+          setSerpArticles(convertedArticles);
+        } catch (error) {
+          console.error('Error fetching SERP news:', error);
+        }
+      }
+    };
+
+    fetchSerpNews();
+  }, [category, country, isPremiumUser, searchNews]);
 
   // Convert AI articles to NewsArticle format
   const convertAIToNewsArticle = (aiArticle: any): NewsArticle => ({
@@ -53,8 +85,9 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
     tags: aiArticle.tags
   });
 
-  // Combine regular and AI articles
+  // Combine and prioritize articles: SERP > AI > Regular
   const combinedArticles = [
+    ...serpArticles,
     ...(aiArticles || []).map(convertAIToNewsArticle),
     ...(articles || [])
   ].sort((a, b) => new Date(b.publishedAt || b.published_at || '').getTime() - new Date(a.publishedAt || a.published_at || '').getTime());
@@ -70,44 +103,34 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
 
   return (
     <div className="space-y-6">
-      {/* AI News Generation */}
-      <div className="bg-gradient-to-r from-ura-green/10 to-blue-500/10 border border-ura-green/20 rounded-lg p-4">
-        <div className="flex items-center justify-between">
+      {/* SERP Priority Notice */}
+      {serpArticles.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg p-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-ura-green" />
-            <h3 className="text-lg font-semibold text-ura-white">Fresh News from Our Top AI Models</h3>
-            <Badge variant="secondary" className="bg-ura-green text-ura-black">
-              {category.charAt(0).toUpperCase() + category.slice(1)} • {country.toUpperCase()}
+            <Zap className="w-5 h-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-ura-white">Premium SERP API Results</h3>
+            <Badge className="bg-blue-500 text-white">
+              {serpArticles.length} articles
             </Badge>
           </div>
-          <Button
-            onClick={generateAINews}
-            disabled={aiLoading || !isPremiumUser}
-            variant="outline"
-            size="sm"
-            className={`border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black ${!isPremiumUser ? 'opacity-50' : ''}`}
-          >
-            {!isPremiumUser && <Crown className="w-4 h-4 mr-2" />}
-            {aiLoading ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4 mr-2" />
-            )}
-            {isPremiumUser ? 'Generate Fresh News' : 'Premium Feature'}
-          </Button>
+          <p className="text-sm text-muted-foreground mt-2">
+            Showing latest news from SERP API with highest priority
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground mt-2">
-          {isPremiumUser 
-            ? `Get fresh, unique news articles powered by our advanced AI models about ${category} from ${country === 'in' ? 'India' : 'your region'}`
-            : 'Upgrade to premium to access AI-generated fresh news articles'
-          }
-        </p>
-      </div>
+      )}
 
       {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {combinedArticles.map((article, index) => (
           <div key={`${article.url || article.id}-${index}-${article.publishedAt}`} className="relative">
+            {article.isSERP && (
+              <div className="absolute top-2 left-2 z-10">
+                <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  <Zap className="w-3 h-3 mr-1" />
+                  SERP API
+                </Badge>
+              </div>
+            )}
             {article.isAI && (
               <div className="absolute top-2 right-2 z-10">
                 <Badge className="bg-gradient-to-r from-ura-green to-blue-500 text-white">
@@ -124,7 +147,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
         ))}
         
         {/* Loading Skeletons */}
-        {(isLoading || aiLoading) && (
+        {(isLoading || aiLoading || serpLoading) && (
           <>
             {[...Array(6)].map((_, i) => (
               <div key={`skeleton-${i}`} className="bg-card rounded-lg border border-border overflow-hidden">
@@ -158,24 +181,26 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
         </div>
       )}
 
-      {/* No More Articles */}
+      {/* Generate More Options */}
       {!hasMore && combinedArticles.length > 0 && (
         <div className="text-center py-8">
-          <p className="text-muted-foreground">You've reached the end of fresh articles</p>
+          <p className="text-muted-foreground mb-4">You've reached the end of fresh articles</p>
           {isPremiumUser && (
-            <Button
-              onClick={generateAINews}
-              className="mt-4 bg-ura-green text-ura-black hover:bg-ura-green-hover"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Generate More AI News
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={generateAINews}
+                className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate More AI News
+              </Button>
+            </div>
           )}
         </div>
       )}
 
       {/* No Articles Found */}
-      {!isLoading && !aiLoading && combinedArticles.length === 0 && (
+      {!isLoading && !aiLoading && !serpLoading && combinedArticles.length === 0 && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No articles found for this category</p>
           {isPremiumUser && (
