@@ -50,13 +50,13 @@ const SpotlightSection = () => {
         .eq('is_active', true)
         .order('priority', { ascending: true })
         .order('created_at', { ascending: false })
-        .limit(4); // Increased to 4 for better grid layout
+        .limit(4);
 
       if (error) throw error;
       return data as SpotlightArticle[];
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
-    refetchInterval: 10 * 60 * 1000, // Refetch every 10 minutes for real-time updates
+    staleTime: 1 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
   });
 
   // Set up real-time updates
@@ -126,7 +126,9 @@ const SpotlightSection = () => {
   if (isLoading) {
     return (
       <section className="relative py-12 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmMDUiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPC9wYXR0ZXJuPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgo8L3N2Zz4=')] opacity-10" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='%23ffffff05' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`
+        }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
             <div className="h-8 bg-red-500/20 rounded mb-6 w-1/3" />
@@ -147,11 +149,11 @@ const SpotlightSection = () => {
 
   return (
     <section className="relative py-12 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmMDUiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPC9wYXR0ZXJuPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgo8L3N2Zz4=')] opacity-10 animate-pulse" />
+      <div className="absolute inset-0 opacity-10 animate-pulse" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='%23ffffff05' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`
+      }} />
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Enhanced Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -187,7 +189,6 @@ const SpotlightSection = () => {
           </div>
         </div>
 
-        {/* Enhanced Spotlight Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {spotlightArticles.map((article, index) => (
             <Card 
@@ -199,7 +200,6 @@ const SpotlightSection = () => {
               }`}
               onClick={() => handleReadSpotlight(article)}
             >
-              {/* Enhanced Priority Badge */}
               <div className="absolute top-4 left-4 z-10">
                 <Badge className={`${getPriorityColor(article.priority)} text-white shadow-lg border-0`}>
                   {getEventTypeIcon(article.event_type)}
@@ -207,7 +207,6 @@ const SpotlightSection = () => {
                 </Badge>
               </div>
 
-              {/* Enhanced Live Indicator */}
               <div className="absolute top-4 right-4 z-10">
                 <div className="flex items-center space-x-1 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
@@ -225,7 +224,6 @@ const SpotlightSection = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black/95 transition-all duration-300" />
                 
-                {/* Floating stats overlay */}
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2 text-sm text-white/80">
@@ -255,7 +253,6 @@ const SpotlightSection = () => {
                   {article.summary}
                 </p>
 
-                {/* Enhanced Quick Stats */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {article.live_updates && article.live_updates.length > 0 && (
                     <div className="flex items-center space-x-1 text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded-lg">
@@ -283,7 +280,6 @@ const SpotlightSection = () => {
                   )}
                 </div>
 
-                {/* Enhanced Tags */}
                 {article.tags && article.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-4">
                     {article.tags.slice(0, 3).map((tag, i) => (
@@ -306,7 +302,6 @@ const SpotlightSection = () => {
           ))}
         </div>
 
-        {/* Enhanced Live Update Notice */}
         <div className="mt-8 text-center">
           <div className="inline-flex items-center space-x-2 bg-card/20 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
