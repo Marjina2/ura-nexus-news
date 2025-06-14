@@ -288,6 +288,42 @@ export type Database = {
         }
         Relationships: []
       }
+      spotlight_news: {
+        Row: {
+          created_at: string
+          date: string
+          full_report: string | null
+          gemini_topic: string
+          id: string
+          image_url: string | null
+          seo_title: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          full_report?: string | null
+          gemini_topic: string
+          id?: string
+          image_url?: string | null
+          seo_title?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          full_report?: string | null
+          gemini_topic?: string
+          id?: string
+          image_url?: string | null
+          seo_title?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_bookmarks: {
         Row: {
           article_url: string

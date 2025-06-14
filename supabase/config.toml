@@ -1,1 +1,4 @@
 project_id = "csjwgsqnsarvmdvmfwig"
+
+[functions.update-spotlight-news]
+verify_jwt = true
