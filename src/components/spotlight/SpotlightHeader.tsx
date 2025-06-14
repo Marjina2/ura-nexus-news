@@ -20,7 +20,7 @@ const SpotlightHeader = ({ currentTime, liveUpdateCount }: SpotlightHeaderProps)
           <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full" />
         </div>
         <div>
-          <h2 className="text-4xl font-bold text-ura-white flex items-center gap-3">
+          <h2 className="text-4xl font-bold text-pulsee-white flex items-center gap-3">
             Breaking Spotlight
             <Badge className="bg-red-500 text-white animate-pulse text-xs">
               LIVE
@@ -35,10 +35,10 @@ const SpotlightHeader = ({ currentTime, liveUpdateCount }: SpotlightHeaderProps)
       <div className="flex items-center space-x-3">
         <div className="text-right">
           <div className="text-sm text-muted-foreground">Updates today</div>
-          <div className="text-2xl font-bold text-ura-green">{liveUpdateCount}</div>
+          <div className="text-2xl font-bold text-pulsee-green">{liveUpdateCount}</div>
         </div>
         {liveUpdateCount > 0 && (
-          <Badge variant="secondary" className="bg-ura-green/20 text-ura-green animate-bounce">
+          <Badge variant="secondary" className="bg-pulsee-green/20 text-pulsee-green animate-bounce">
             +{liveUpdateCount} new
           </Badge>
         )}

@@ -66,7 +66,7 @@ const SpotlightSection = () => {
       return data as SpotlightArticle[];
     },
     staleTime: 1 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // Check more frequently
   });
 
   useEffect(() => {
@@ -142,8 +142,20 @@ const SpotlightSection = () => {
     navigate(`/article?data=${spotlightData}`);
   };
 
-  if (isLoading || isUpdating) {
-    return <SpotlightLoading progress={isUpdating ? updateProgress : 0} />;
+  if (isLoading) {
+    return (
+      <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <SpotlightLoading progress={0} />
+      </section>
+    );
+  }
+
+  if (isUpdating) {
+    return (
+      <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <SpotlightLoading progress={updateProgress} />
+      </section>
+    );
   }
 
   if (error) {
@@ -158,7 +170,7 @@ const SpotlightSection = () => {
             className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Retry
+            Generate Fresh Spotlight
           </Button>
         </div>
       </section>
@@ -176,17 +188,8 @@ const SpotlightSection = () => {
             disabled={isUpdating}
             className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
           >
-            {isUpdating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Generate Spotlight
-              </>
-            )}
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Generate Fresh Spotlight
           </Button>
         </div>
       </section>
@@ -210,17 +213,8 @@ const SpotlightSection = () => {
             size="sm"
             className="border-red-500/30 hover:border-red-500 text-red-400 hover:bg-red-500/10"
           >
-            {isUpdating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </>
-            )}
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
           </Button>
         </div>
 

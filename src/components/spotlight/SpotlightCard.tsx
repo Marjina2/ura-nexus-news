@@ -107,7 +107,7 @@ const SpotlightCard = ({ article, onRead }: SpotlightCardProps) => {
           </div>
         </div>
 
-        <h3 className="text-2xl font-bold text-ura-white mb-4 group-hover:text-red-400 transition-colors duration-300 line-clamp-2">
+        <h3 className="text-2xl font-bold text-pulsee-white mb-4 group-hover:text-red-400 transition-colors duration-300 line-clamp-2">
           {article.title}
         </h3>
 

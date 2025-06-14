@@ -21,7 +21,7 @@ const SpotlightLoading = ({ progress }: SpotlightLoadingProps) => {
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full animate-ping mx-auto" />
           </div>
           
-          <h3 className="text-2xl font-bold text-ura-white mb-4">
+          <h3 className="text-2xl font-bold text-pulsee-white mb-4">
             Generating Fresh Spotlight
           </h3>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">

@@ -1,160 +1,82 @@
+
 import React from 'react';
-import { Brain, Globe, Users, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const About = () => {
-  const features = [
-    {
-      icon: <Brain className="w-8 h-8 text-plusee-green" />,
-      title: 'AI-Powered Curation',
-      description: 'Our advanced AI algorithms select and enhance the most relevant news stories for you.'
-    },
-    {
-      icon: <Globe className="w-8 h-8 text-plusee-green" />,
-      title: 'Global Coverage',
-      description: 'Stay informed with comprehensive coverage from trusted sources worldwide.'
-    },
-    {
-      icon: <Users className="w-8 h-8 text-plusee-green" />,
-      title: 'Creator Friendly',
-      description: 'Built for content creators with licensing, export, and reuse capabilities.'
-    },
-    {
-      icon: <Zap className="w-8 h-8 text-plusee-green" />,
-      title: 'Lightning Fast',
-      description: 'Optimized for speed with instant article loading and real-time updates.'
-    }
-  ];
+  useScrollAnimation();
 
   return (
-    <div className="min-h-screen bg-plusee-black">
+    <div className="min-h-screen bg-pulsee-black">
       <Header />
-      
-      <main className="pt-24">
-        {/* Hero Section */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto text-center">
+      <main className="pt-32 pb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="scroll-scale-in text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold gradient-text mb-6">
-              About Plusee
+              About Pulsee
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Revolutionizing how you consume and create with news through AI-powered intelligence
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Revolutionizing news consumption with AI-powered insights and real-time updates
             </p>
           </div>
-        </section>
 
-        {/* Mission Section */}
-        <section className="py-16 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-6">
-                  Our Mission
-                </h2>
-                <p className="text-lg text-muted-foreground mb-6">
-                  Plusee exists to transform the way people discover, consume, and create with news content. 
-                  We believe that in an age of information overload, artificial intelligence can help 
-                  curate the most relevant, accurate, and engaging stories.
-                </p>
-                <p className="text-lg text-muted-foreground">
-                  Our platform empowers both readers and content creators with tools that make news 
-                  consumption more efficient and content creation more impactful.
-                </p>
-              </div>
-              <div className="relative">
-                <div className="w-full h-80 bg-gradient-to-br from-plusee-green/20 to-card rounded-2xl flex items-center justify-center">
-                  <Brain className="w-32 h-32 text-plusee-green opacity-50" />
+          <div className="space-y-12">
+            <section className="scroll-fade-in">
+              <h2 className="text-3xl font-bold text-pulsee-white mb-6">Our Mission</h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                At Pulsee, we believe that staying informed shouldn't be overwhelming. Our mission is to deliver 
+                personalized, AI-curated news that helps you understand the world around you without the noise.
+              </p>
+            </section>
+
+            <section className="scroll-slide-left">
+              <h2 className="text-3xl font-bold text-pulsee-white mb-6">What Makes Us Different</h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-card/20 backdrop-blur-sm border border-border rounded-xl p-6">
+                  <h3 className="text-xl font-semibold text-pulsee-green mb-4">AI-Powered Curation</h3>
+                  <p className="text-muted-foreground">
+                    Our advanced AI algorithms analyze thousands of sources to bring you the most relevant and important news.
+                  </p>
+                </div>
+                <div className="bg-card/20 backdrop-blur-sm border border-border rounded-xl p-6">
+                  <h3 className="text-xl font-semibold text-pulsee-green mb-4">Real-Time Updates</h3>
+                  <p className="text-muted-foreground">
+                    Stay ahead with live updates and breaking news delivered as they happen.
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        {/* Features Grid */}
-        <section className="py-16 px-4 bg-card/50">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center gradient-text mb-12">
-              What Makes Plusee Different
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <Card key={index} className="text-center hover-lift">
-                  <CardHeader>
-                    <div className="mx-auto mb-4">
-                      {feature.icon}
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription>{feature.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Story Section */}
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-8">
-              Our Story
-            </h2>
-            <div className="text-lg text-muted-foreground space-y-6">
-              <p>
-                Founded in 2024, Plusee emerged from a simple observation: people were drowning in 
-                information but starving for insight. Traditional news consumption was becoming 
-                increasingly fragmented and overwhelming.
-              </p>
-              <p>
-                We envisioned a platform where artificial intelligence could serve as a trusted 
-                curator, helping readers discover the stories that matter most while providing 
-                creators with the tools they need to build upon quality journalism.
-              </p>
-              <p>
-                Today, Plusee serves thousands of users daily, from casual readers to professional 
-                content creators, all united by a shared desire for smarter, more efficient 
-                news consumption.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Values Section */}
-        <section className="py-16 px-4 bg-card/50">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center gradient-text mb-12">
-              Our Values
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-plusee-green mb-4">Quality First</h3>
-                <p className="text-muted-foreground">
-                  We prioritize accuracy and relevance over quantity, ensuring every curated 
-                  piece meets our high standards.
-                </p>
+            <section className="scroll-slide-right">
+              <h2 className="text-3xl font-bold text-pulsee-white mb-6">Our Values</h2>
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-pulsee-green rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-pulsee-white mb-2">Accuracy First</h4>
+                    <p className="text-muted-foreground">We prioritize factual, verified information from trusted sources.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-pulsee-green rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-pulsee-white mb-2">User Privacy</h4>
+                    <p className="text-muted-foreground">Your data and reading preferences are protected and never sold.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-pulsee-green rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-pulsee-white mb-2">Innovation</h4>
+                    <p className="text-muted-foreground">Continuously improving to provide the best news experience.</p>
+                  </div>
+                </div>
               </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-plusee-green mb-4">Creator Empowerment</h3>
-                <p className="text-muted-foreground">
-                  We believe in empowering content creators with the tools and licensing they 
-                  need to build successful businesses.
-                </p>
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-plusee-green mb-4">Innovation</h3>
-                <p className="text-muted-foreground">
-                  We continuously evolve our AI technology to provide better experiences 
-                  for our users.
-                </p>
-              </div>
-            </div>
+            </section>
           </div>
-        </section>
+        </div>
       </main>
-
       <Footer />
     </div>
   );

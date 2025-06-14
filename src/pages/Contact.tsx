@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
-import { Mail, MessageSquare, Phone, MapPin } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -15,16 +15,12 @@ const Contact = () => {
     subject: '',
     message: ''
   });
-  const { toast } = useToast();
+  useScrollAnimation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock form submission
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for reaching out. We'll get back to you soon.",
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    console.log('Contact form submitted:', formData);
+    // Handle form submission here
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,197 +30,109 @@ const Contact = () => {
     }));
   };
 
-  const contactInfo = [
-    {
-      icon: <Mail className="w-6 h-6 text-ura-green" />,
-      title: 'Email',
-      content: 'hello@ura.news',
-      description: 'Send us an email anytime'
-    },
-    {
-      icon: <MessageSquare className="w-6 h-6 text-ura-green" />,
-      title: 'Live Chat',
-      content: 'Available 24/7',
-      description: 'Chat with our support team'
-    },
-    {
-      icon: <Phone className="w-6 h-6 text-ura-green" />,
-      title: 'Phone',
-      content: '+91 98765 43210',
-      description: 'Mon-Fri 9AM-6PM IST'
-    },
-    {
-      icon: <MapPin className="w-6 h-6 text-ura-green" />,
-      title: 'Office',
-      content: 'Mumbai, India',
-      description: 'Visit us in person'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-ura-black">
+    <div className="min-h-screen bg-pulsee-black">
       <Header />
-      
-      <main className="pt-24">
-        {/* Hero Section */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto text-center">
+      <main className="pt-32 pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="scroll-scale-in text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold gradient-text mb-6">
               Get in Touch
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Have questions or feedback? We'd love to hear from you.
             </p>
           </div>
-        </section>
 
-        {/* Contact Grid */}
-        <section className="py-16 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Contact Form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Send us a message</CardTitle>
-                  <CardDescription>
-                    Fill out the form below and we'll get back to you as soon as possible.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-2">
-                        Name
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        placeholder="Your full name"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium mb-2">
-                        Email
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                        Subject
-                      </label>
-                      <Input
-                        id="subject"
-                        name="subject"
-                        type="text"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        required
-                        placeholder="What is this about?"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="message" className="block text-sm font-medium mb-2">
-                        Message
-                      </label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        rows={6}
-                        placeholder="Tell us more about your inquiry..."
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
-                    >
-                      Send Message
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Contact Information */}
-              <div className="space-y-8">
-                <div>
-                  <h2 className="text-2xl font-bold gradient-text mb-6">
-                    Contact Information
-                  </h2>
-                  <p className="text-muted-foreground mb-8">
-                    Choose the most convenient way to reach us. We're here to help!
-                  </p>
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div className="scroll-slide-left">
+              <h2 className="text-2xl font-bold text-pulsee-white mb-6">Contact Information</h2>
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-pulsee-green/20 rounded-full flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-pulsee-green" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-pulsee-white">Email</h3>
+                    <p className="text-muted-foreground">hello@pulsee.com</p>
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {contactInfo.map((info, index) => (
-                    <Card key={index} className="hover-lift">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-card rounded-full">
-                            {info.icon}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg mb-1">{info.title}</h3>
-                            <p className="text-ura-green font-medium mb-1">{info.content}</p>
-                            <p className="text-sm text-muted-foreground">{info.description}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-pulsee-green/20 rounded-full flex items-center justify-center">
+                    <Phone className="w-6 h-6 text-pulsee-green" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-pulsee-white">Phone</h3>
+                    <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  </div>
                 </div>
-
-                {/* FAQ Quick Links */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Help</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-medium text-ura-green mb-2">Billing Questions?</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Check our <a href="/pricing" className="text-ura-green hover:underline">pricing page</a> for plan details and billing information.
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-ura-green mb-2">Technical Support</h4>
-                      <p className="text-sm text-muted-foreground">
-                        For technical issues, please include your browser version and a description of the problem.
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-ura-green mb-2">Feature Requests</h4>
-                      <p className="text-sm text-muted-foreground">
-                        We love hearing your ideas! Let us know what features you'd like to see.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-pulsee-green/20 rounded-full flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-pulsee-green" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-pulsee-white">Address</h3>
+                    <p className="text-muted-foreground">123 News Street, Tech City, TC 12345</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </main>
 
+            <div className="scroll-slide-right">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Input
+                    name="name"
+                    placeholder="Your Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="bg-card border-border"
+                  />
+                </div>
+                <div>
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="Your Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="bg-card border-border"
+                  />
+                </div>
+                <div>
+                  <Input
+                    name="subject"
+                    placeholder="Subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                    className="bg-card border-border"
+                  />
+                </div>
+                <div>
+                  <Textarea
+                    name="message"
+                    placeholder="Your Message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    rows={6}
+                    className="bg-card border-border"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-pulsee-green to-blue-500 text-white hover:from-pulsee-green-hover hover:to-blue-600"
+                >
+                  Send Message
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
       <Footer />
     </div>
   );
