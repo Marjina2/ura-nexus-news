@@ -156,12 +156,93 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_articles: {
+        Row: {
+          category: string | null
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          published_at: string | null
+          source_name: string | null
+          title: string
+          updated_at: string
+          url: string
+          view_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          source_name?: string | null
+          title: string
+          updated_at?: string
+          url: string
+          view_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          source_name?: string | null
+          title?: string
+          updated_at?: string
+          url?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      user_bookmarks: {
+        Row: {
+          article_url: string
+          bookmarked_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          source_name: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          article_url: string
+          bookmarked_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          source_name?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          article_url?: string
+          bookmarked_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          source_name?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_article_views: {
+        Args: { article_url: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

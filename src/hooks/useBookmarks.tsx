@@ -1,65 +1,103 @@
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Bookmark {
   id: string;
   title: string;
-  category: string;
-  date: string;
-  url: string;
-  summary?: string;
+  description?: string;
+  image_url?: string;
+  source_name?: string;
+  article_url: string;
+  bookmarked_at: string;
 }
 
 export const useBookmarks = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mock data for now - in production this would sync with your backend
+  // Fetch bookmarks from Supabase
   useEffect(() => {
     if (user) {
-      const savedBookmarks = localStorage.getItem(`bookmarks_${user.id}`);
-      if (savedBookmarks) {
-        setBookmarks(JSON.parse(savedBookmarks));
-      }
+      fetchBookmarks();
     }
   }, [user]);
 
-  const addBookmark = async (article: Omit<Bookmark, 'id'>) => {
-    if (!user) return false;
-
-    const isPro = user.publicMetadata?.subscription === 'pro';
-    const maxBookmarks = isPro ? Infinity : 20;
-
-    if (bookmarks.length >= maxBookmarks) {
-      throw new Error(`Free users can only save ${maxBookmarks} bookmarks. Upgrade to Pro for unlimited bookmarks.`);
-    }
-
-    const newBookmark: Bookmark = {
-      ...article,
-      id: `bookmark_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    };
-
-    const updatedBookmarks = [...bookmarks, newBookmark];
-    setBookmarks(updatedBookmarks);
-    localStorage.setItem(`bookmarks_${user.id}`, JSON.stringify(updatedBookmarks));
+  const fetchBookmarks = async () => {
+    if (!user) return;
     
-    return true;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_bookmarks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('bookmarked_at', { ascending: false });
+
+      if (error) throw error;
+      setBookmarks(data || []);
+    } catch (error) {
+      console.error('Error fetching bookmarks:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeBookmark = async (bookmarkId: string) => {
+  const addBookmark = async (article: {
+    url: string;
+    title: string;
+    description?: string;
+    image_url?: string;
+    source_name?: string;
+  }) => {
     if (!user) return false;
 
-    const updatedBookmarks = bookmarks.filter(b => b.id !== bookmarkId);
-    setBookmarks(updatedBookmarks);
-    localStorage.setItem(`bookmarks_${user.id}`, JSON.stringify(updatedBookmarks));
-    
-    return true;
+    try {
+      const { error } = await supabase
+        .from('user_bookmarks')
+        .insert({
+          user_id: user.id,
+          article_url: article.url,
+          title: article.title,
+          description: article.description,
+          image_url: article.image_url,
+          source_name: article.source_name,
+        });
+
+      if (error) throw error;
+      
+      await fetchBookmarks(); // Refresh the list
+      return true;
+    } catch (error) {
+      console.error('Error adding bookmark:', error);
+      return false;
+    }
+  };
+
+  const removeBookmark = async (articleUrl: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('user_bookmarks')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('article_url', articleUrl);
+
+      if (error) throw error;
+      
+      await fetchBookmarks(); // Refresh the list
+      return true;
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      return false;
+    }
   };
 
   const isBookmarked = (articleUrl: string) => {
-    return bookmarks.some(b => b.url === articleUrl);
+    return bookmarks.some(b => b.article_url === articleUrl);
   };
 
   return {
@@ -69,6 +107,6 @@ export const useBookmarks = () => {
     isBookmarked,
     loading,
     count: bookmarks.length,
-    maxBookmarks: user?.publicMetadata?.subscription === 'pro' ? 'Unlimited' : 20,
+    maxBookmarks: 'Unlimited',
   };
 };

@@ -45,7 +45,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
         />
         <div className="absolute top-3 left-3">
           <Badge variant="secondary" className="bg-ura-green text-ura-black">
-            {article.source.name}
+            News
           </Badge>
         </div>
       </div>

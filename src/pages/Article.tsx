@@ -5,18 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Clock, Share2, Bookmark, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
+import { ArrowLeft, Clock, Share2, Bookmark, BookmarkCheck, Sparkles, Eye } from 'lucide-react';
 import { useEnhanceArticle, EnhancedArticle } from '@/hooks/useNews';
+import { useBookmarks } from '@/hooks/useBookmarks';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ArticleContent from '@/components/ArticleContent';
 
 const Article = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { enhanceArticle } = useEnhanceArticle();
+  const { user } = useAuth();
+  const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const [article, setArticle] = useState<EnhancedArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewCount, setViewCount] = useState(0);
 
   useEffect(() => {
     const articleData = searchParams.get('data');
@@ -24,6 +31,7 @@ const Article = () => {
       try {
         const parsedArticle = JSON.parse(decodeURIComponent(articleData));
         setArticle(parsedArticle);
+        saveArticleAndIncrementViews(parsedArticle);
         setIsLoading(false);
         setError(null);
       } catch (error) {
@@ -36,6 +44,52 @@ const Article = () => {
       setIsLoading(false);
     }
   }, [searchParams]);
+
+  const saveArticleAndIncrementViews = async (articleData: any) => {
+    try {
+      // Save article to saved_articles table
+      const { error: insertError } = await supabase
+        .from('saved_articles')
+        .upsert({
+          title: articleData.title,
+          description: articleData.description,
+          content: articleData.content || getFullArticleContent(articleData),
+          url: articleData.url,
+          image_url: articleData.urlToImage || articleData.image_url,
+          published_at: articleData.publishedAt || articleData.published_at,
+          source_name: articleData.source?.name || 'AI News Assistant',
+          category: articleData.category || 'general',
+        }, {
+          onConflict: 'url'
+        });
+
+      if (insertError) {
+        console.error('Error saving article:', insertError);
+      }
+
+      // Increment view count
+      const { error: incrementError } = await supabase.rpc('increment_article_views', {
+        article_url: articleData.url
+      });
+
+      if (incrementError) {
+        console.error('Error incrementing view count:', incrementError);
+      }
+
+      // Fetch current view count
+      const { data: viewData } = await supabase
+        .from('saved_articles')
+        .select('view_count')
+        .eq('url', articleData.url)
+        .single();
+
+      if (viewData) {
+        setViewCount(viewData.view_count);
+      }
+    } catch (error) {
+      console.error('Error in saveArticleAndIncrementViews:', error);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -57,16 +111,48 @@ const Article = () => {
       });
     } else if (article) {
       navigator.clipboard.writeText(window.location.href);
+      toast.success('Article link copied to clipboard!');
     }
   };
 
-  // Generate comprehensive article content
+  const handleBookmark = async () => {
+    if (!user) {
+      toast.error('Please sign in to bookmark articles');
+      return;
+    }
+
+    if (!article) return;
+
+    const bookmarkData = {
+      url: article.url,
+      title: article.title,
+      description: article.description,
+      image_url: article.urlToImage || article.image_url,
+      source_name: article.source?.name || 'AI News Assistant',
+    };
+
+    if (isBookmarked(article.url)) {
+      const success = await removeBookmark(article.url);
+      if (success) {
+        toast.success('Bookmark removed');
+      } else {
+        toast.error('Failed to remove bookmark');
+      }
+    } else {
+      const success = await addBookmark(bookmarkData);
+      if (success) {
+        toast.success('Article bookmarked!');
+      } else {
+        toast.error('Failed to bookmark article');
+      }
+    }
+  };
+
   const getFullArticleContent = (article: any) => {
     if (article.content && article.content.length > 200) {
       return article.content;
     }
 
-    // Generate comprehensive content based on title and description
     const baseContent = article.description || article.title;
     
     return `${baseContent}
@@ -172,13 +258,16 @@ This story serves as a reminder of the importance of staying informed about curr
 
             <CardHeader className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Badge variant="secondary" className="bg-ura-green text-ura-black">
-                  {article.source?.name || 'AI News Assistant'}
-                </Badge>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
                   {formatDate(article.publishedAt || article.published_at || '')}
                 </div>
+                {viewCount > 0 && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Eye className="w-4 h-4" />
+                    {viewCount} views
+                  </div>
+                )}
               </div>
 
               <h1 className="text-3xl md:text-4xl font-bold text-ura-white leading-tight">
@@ -196,9 +285,13 @@ This story serves as a reminder of the importance of staying informed about curr
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
-                <Button variant="outline">
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  Bookmark
+                <Button onClick={handleBookmark} variant="outline">
+                  {isBookmarked(article.url) ? (
+                    <BookmarkCheck className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Bookmark className="w-4 h-4 mr-2" />
+                  )}
+                  {isBookmarked(article.url) ? 'Bookmarked' : 'Bookmark'}
                 </Button>
               </div>
             </CardHeader>
@@ -206,22 +299,12 @@ This story serves as a reminder of the importance of staying informed about curr
             <CardContent className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold text-ura-white mb-4">Full Article</h2>
-                <div className="prose prose-invert max-w-none">
-                  <div className="text-muted-foreground leading-relaxed space-y-4">
-                    {fullContent.split('\n\n').map((paragraph, index) => (
-                      paragraph.trim() && (
-                        <p key={index} className="mb-4">
-                          {paragraph.trim()}
-                        </p>
-                      )
-                    ))}
-                  </div>
-                </div>
+                <ArticleContent content={fullContent} />
               </div>
 
               <div className="border-t border-border pt-6">
                 <p className="text-sm text-muted-foreground mb-2">
-                  Article {article.isAI ? 'generated by AI News Assistant' : `originally published by ${article.source?.name || 'Unknown Source'}`}
+                  Article {article.isAI ? 'generated by AI News Assistant' : 'from trusted news sources'}
                 </p>
                 {article.tags && article.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
