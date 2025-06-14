@@ -15,7 +15,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 const News = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('general');
-  const [selectedCountry, setSelectedCountry] = useState('in');
+  const selectedCountry = 'in'; // Fixed to India
   const { categories } = useNews(selectedCategory, selectedCountry);
   useScrollAnimation();
 
@@ -25,7 +25,7 @@ const News = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ura-black">
+    <div className="min-h-screen bg-pulsee-black">
       <Header />
       <main className="pt-32 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +33,7 @@ const News = () => {
           <Button 
             onClick={() => navigate('/')} 
             variant="ghost" 
-            className="scroll-fade-in mb-6 text-ura-white hover:text-ura-green"
+            className="scroll-fade-in mb-6 text-pulsee-white hover:text-pulsee-green"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -41,7 +41,7 @@ const News = () => {
 
           {/* Page Header */}
           <div className="scroll-scale-in text-center mb-8">
-            <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold text-pulsee-white mb-4">
               Latest Fresh News
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -52,10 +52,8 @@ const News = () => {
           {/* Filters */}
           <NewsFilters
             selectedCategory={selectedCategory}
-            selectedCountry={selectedCountry}
             categories={categories}
             onCategoryChange={setSelectedCategory}
-            onCountryChange={setSelectedCountry}
           />
 
           {/* AI News Section */}

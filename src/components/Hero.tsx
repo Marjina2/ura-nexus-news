@@ -21,10 +21,10 @@ const Hero = () => {
   }, [words.length]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-plusee-black via-plusee-black to-purple-900/20 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-pulsee-black via-pulsee-black to-purple-900/20 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-plusee-green/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-pulsee-green/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-128 h-128 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-2000" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(64,224,208,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(64,224,208,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
@@ -33,23 +33,23 @@ const Hero = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-8">
           {/* Badge */}
-          <div className="scroll-fade-in inline-flex items-center space-x-2 bg-plusee-green/10 backdrop-blur-sm border border-plusee-green/20 rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-plusee-green" />
-            <span className="text-sm text-plusee-white">AI-Powered News Platform</span>
+          <div className="scroll-fade-in inline-flex items-center space-x-2 bg-pulsee-green/10 backdrop-blur-sm border border-pulsee-green/20 rounded-full px-4 py-2">
+            <Sparkles className="w-4 h-4 text-pulsee-green" />
+            <span className="text-sm text-pulsee-white">AI-Powered News Platform</span>
           </div>
 
           {/* Main Heading with Animated Text */}
           <div className="space-y-6 py-4">
-            <h1 className="scroll-scale-in text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-[1.15] pb-2">
+            <h1 className="scroll-scale-in text-4xl md:text-6xl lg:text-7xl font-bold text-pulsee-white leading-[1.15] pb-2">
               <span 
                 key={currentWordIndex}
-                className="inline-block gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent animate-fade-in pb-1"
+                className="inline-block gradient-text bg-gradient-to-r from-pulsee-green to-blue-400 bg-clip-text text-transparent animate-fade-in pb-1"
                 style={{ lineHeight: '1.2' }}
               >
                 {words[currentWordIndex]}
               </span>{' '}
               That{' '}
-              <span className="gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent pb-1">
+              <span className="gradient-text bg-gradient-to-r from-pulsee-green to-blue-400 bg-clip-text text-transparent pb-1">
                 Thinks
               </span>
               <br />
@@ -72,7 +72,7 @@ const Hero = () => {
               <Badge 
                 key={index}
                 variant="secondary" 
-                className="bg-card/50 backdrop-blur-sm border-plusee-green/20 text-plusee-white px-4 py-2 stagger-animation"
+                className="bg-card/50 backdrop-blur-sm border-pulsee-green/20 text-pulsee-white px-4 py-2 stagger-animation"
                 style={{ '--animation-order': index } as React.CSSProperties}
               >
                 <feature.icon className="w-3 h-3 mr-2" />
@@ -85,7 +85,7 @@ const Hero = () => {
           <div className="scroll-slide-right flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-6">
             <Button 
               size="lg" 
-              className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover font-semibold px-8 py-4 text-lg group hover-lift"
+              className="bg-gradient-to-r from-pulsee-green to-emerald-400 text-pulsee-black hover:from-pulsee-green-hover hover:to-emerald-500 font-semibold px-8 py-4 text-lg group hover-lift shadow-lg hover:shadow-pulsee-green/25"
               onClick={() => navigate('/news')}
             >
               Read Now
@@ -95,7 +95,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-plusee-green text-plusee-green hover:bg-plusee-green hover:text-plusee-black px-8 py-4 text-lg hover-lift"
+              className="bg-gradient-to-r from-pulsee-green/10 to-emerald-400/10 border-pulsee-green text-pulsee-green hover:bg-gradient-to-r hover:from-pulsee-green hover:to-emerald-400 hover:text-pulsee-black px-8 py-4 text-lg hover-lift shadow-lg hover:shadow-pulsee-green/25"
               onClick={() => navigate('/about')}
             >
               Learn More
@@ -105,7 +105,7 @@ const Hero = () => {
           {/* Partnership and Metrics */}
           <div className="scroll-fade-in grid grid-cols-1 md:grid-cols-2 gap-8 pt-12">
             <div className="text-center scroll-slide-left">
-              <div className="text-3xl md:text-4xl font-bold text-plusee-green mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-pulsee-green mb-2">
                 Growing Community
               </div>
               <div className="text-muted-foreground">
@@ -138,7 +138,7 @@ const Hero = () => {
                     fill="#EA4335"
                   />
                 </svg>
-                <div className="text-3xl md:text-4xl font-bold text-plusee-green">
+                <div className="text-3xl md:text-4xl font-bold text-pulsee-green">
                   Google Partner
                 </div>
               </div>
@@ -150,7 +150,7 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-plusee-black to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-pulsee-black to-transparent" />
     </section>
   );
 };
