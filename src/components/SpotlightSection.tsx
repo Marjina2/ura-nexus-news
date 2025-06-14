@@ -5,8 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, MapPin, Clock, ExternalLink, AlertTriangle, TrendingUp, Eye } from 'lucide-react';
-import { useSerpApi } from '@/hooks/useSerpApi';
+import { Zap, MapPin, Clock, ExternalLink, AlertTriangle, TrendingUp, Eye, RefreshCw } from 'lucide-react';
 
 interface SpotlightArticle {
   id: string;
@@ -31,8 +30,7 @@ const SpotlightSection = () => {
   const navigate = useNavigate();
   const [liveUpdateCount, setLiveUpdateCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [serpImage, setSerpImage] = useState<string | null>(null);
-  const { searchImages } = useSerpApi();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Update current time every minute
   useEffect(() => {
@@ -61,29 +59,6 @@ const SpotlightSection = () => {
     refetchInterval: 10 * 60 * 1000,
   });
 
-  // Fetch SERP image when spotlight article changes
-  useEffect(() => {
-    const fetchSerpImage = async () => {
-      if (spotlightArticles && spotlightArticles.length > 0) {
-        const article = spotlightArticles[0];
-        const serpApiKey = localStorage.getItem('serpApiKey');
-        
-        if (serpApiKey) {
-          try {
-            const images = await searchImages(article.title, serpApiKey);
-            if (images.length > 0) {
-              setSerpImage(images[0].original);
-            }
-          } catch (error) {
-            console.error('Error fetching SERP image:', error);
-          }
-        }
-      }
-    };
-
-    fetchSerpImage();
-  }, [spotlightArticles, searchImages]);
-
   // Set up real-time updates
   useEffect(() => {
     const channel = supabase
@@ -106,6 +81,21 @@ const SpotlightSection = () => {
       supabase.removeChannel(channel);
     };
   }, [refetch]);
+
+  const handleUpdateSpotlight = async () => {
+    setIsUpdating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('update-spotlight');
+      if (error) throw error;
+      
+      await refetch();
+      console.log('Spotlight updated successfully:', data);
+    } catch (error) {
+      console.error('Error updating spotlight:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleReadSpotlight = (article: SpotlightArticle) => {
     const spotlightData = encodeURIComponent(JSON.stringify({
@@ -166,11 +156,37 @@ const SpotlightSection = () => {
   }
 
   if (!spotlightArticles || spotlightArticles.length === 0) {
-    return null;
+    return (
+      <section className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Zap className="w-8 h-8 text-red-400 mr-3" />
+            <h2 className="text-2xl font-bold text-ura-white">No Active Spotlight</h2>
+          </div>
+          <p className="text-muted-foreground mb-6">Update spotlight with current groundbreaking news</p>
+          <Button
+            onClick={handleUpdateSpotlight}
+            disabled={isUpdating}
+            className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
+          >
+            {isUpdating ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Update Spotlight
+              </>
+            )}
+          </Button>
+        </div>
+      </section>
+    );
   }
 
   const mainArticle = spotlightArticles[0];
-  const imageUrl = serpImage || mainArticle.image_url || 'https://images.unsplash.com/photo-1544963813-d0c8aed83b37?w=800&h=600&fit=crop';
 
   return (
     <section className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
@@ -195,10 +211,30 @@ const SpotlightSection = () => {
                 </Badge>
               </h2>
               <p className="text-muted-foreground mt-1 text-sm">
-                Real-time updates • Last synced: {currentTime.toLocaleTimeString()}
+                AI-powered • Last updated: {formatTimeAgo(mainArticle.updated_at)}
               </p>
             </div>
           </div>
+          
+          <Button
+            onClick={handleUpdateSpotlight}
+            disabled={isUpdating}
+            variant="outline"
+            size="sm"
+            className="border-red-500/30 hover:border-red-500 text-red-400 hover:bg-red-500/10"
+          >
+            {isUpdating ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Main Spotlight Article - Horizontal Layout */}
@@ -206,7 +242,7 @@ const SpotlightSection = () => {
           {/* Left Side - Image */}
           <div className="relative lg:w-80 h-48 lg:h-auto overflow-hidden">
             <img
-              src={imageUrl}
+              src={mainArticle.image_url}
               alt={mainArticle.title}
               className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
             />
@@ -279,7 +315,7 @@ const SpotlightSection = () => {
           <div className="inline-flex items-center space-x-2 bg-card/20 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <p className="text-sm text-muted-foreground">
-              Auto-refresh every 10 minutes • Enhanced with SERP API images
+              AI-powered spotlight • Updates with current major news
             </p>
           </div>
         </div>
