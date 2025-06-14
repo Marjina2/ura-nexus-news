@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from '@/pages/Index';
@@ -19,6 +18,7 @@ import Search from '@/pages/Search';
 import AuthCallback from '@/pages/AuthCallback';
 import ProfileCompletion from '@/components/auth/ProfileCompletion';
 import News from '@/pages/News';
+import SpotlightDetailPage from '@/pages/SpotlightDetailPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
@@ -56,6 +56,7 @@ function AppContent() {
           <Route path="/ai-picks" element={<AIPicks />} />
           <Route path="/search" element={<Search />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/spotlight/:date" element={<SpotlightDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
