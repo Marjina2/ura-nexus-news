@@ -52,7 +52,7 @@ const News = () => {
             Back to Home
           </Button>
 
-          {/* Today's Spotlight Section */}
+          {/* Today's Spotlight Section - Moved to top */}
           <SpotlightSection />
 
           {/* Page Header */}
