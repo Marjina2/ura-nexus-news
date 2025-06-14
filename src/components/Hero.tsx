@@ -41,30 +41,31 @@ const Hero = () => {
           </div>
 
           {/* Main Heading with Animated Text */}
-          <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-tight">
+          <div className="space-y-6 py-4">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-[1.15] pb-2">
               <span 
                 key={currentWordIndex}
-                className="inline-block gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
+                className="inline-block gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent animate-fade-in pb-1"
+                style={{ lineHeight: '1.2' }}
               >
                 {words[currentWordIndex]}
               </span>{' '}
               That{' '}
-              <span className="gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent">
+              <span className="gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent pb-1">
                 Thinks
               </span>
               <br />
               Beyond Headlines
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed pt-4">
               Experience journalism enhanced by artificial intelligence. Get deeper insights, 
               comprehensive analysis, and personalized news from trusted sources across India.
             </p>
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 pt-4">
             {[
               { icon: Zap, text: "Real-time Updates" },
               { icon: Globe, text: "India-focused" },
@@ -82,7 +83,7 @@ const Hero = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-6">
             <Button 
               size="lg" 
               className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover font-semibold px-8 py-4 text-lg group"
