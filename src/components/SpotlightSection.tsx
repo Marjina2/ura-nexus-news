@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,19 +54,20 @@ const SpotlightSection = () => {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const isSpotlightToday = isToday(spotlight.date);
+  const isSpotlightToday = spotlight.date === today;
 
   return (
     <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
       <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
-      <div className="relative max-w-3xl mx-auto flex flex-col lg:flex-row items-center gap-8 px-4">
-        {/* Image */}
-        <div className="w-full max-w-lg h-56 rounded-xl overflow-hidden border border-red-500/30 bg-black/20 mx-auto shrink-0">
+      <div className="relative max-w-3xl mx-auto flex flex-col items-center gap-6 px-4">
+        <span className="inline-block mb-2 text-lg text-red-400 uppercase font-bold tracking-widest">
+          Spotlight
+        </span>
+        <div className="w-full max-w-lg h-56 rounded-xl overflow-hidden border border-red-500/30 bg-black/20 mx-auto shrink-0 mb-4">
           <img src={spotlight.image_url} alt={spotlight.seo_title} className="object-cover w-full h-full" />
         </div>
-        {/* Content */}
-        <div className="flex-1">
-          <span className="inline-block mb-2 text-sm text-red-400 uppercase font-bold tracking-widest">
+        <div className="text-center">
+          <span className="block mb-1 text-xs text-red-400 uppercase font-bold">
             {isSpotlightToday ? "Today's Spotlight" : `Spotlight from ${formatDateReadable(spotlight.date)}`}
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-pulsee-white mb-4">{spotlight.seo_title}</h2>
