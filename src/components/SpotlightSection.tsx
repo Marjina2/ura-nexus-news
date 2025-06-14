@@ -54,8 +54,7 @@ const SpotlightSection = () => {
         .select('*')
         .eq('is_active', true)
         .order('priority', { ascending: true })
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching spotlight articles:', error);
@@ -66,7 +65,7 @@ const SpotlightSection = () => {
       return data as SpotlightArticle[];
     },
     staleTime: 1 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000, // Check more frequently
+    refetchInterval: 5 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -142,18 +141,10 @@ const SpotlightSection = () => {
     navigate(`/article?data=${spotlightData}`);
   };
 
-  if (isLoading) {
+  if (isLoading || isUpdating) {
     return (
       <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-        <SpotlightLoading progress={0} />
-      </section>
-    );
-  }
-
-  if (isUpdating) {
-    return (
-      <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-        <SpotlightLoading progress={updateProgress} />
+        <SpotlightLoading progress={isUpdating ? updateProgress : 0} />
       </section>
     );
   }
@@ -162,11 +153,13 @@ const SpotlightSection = () => {
     console.error('Spotlight section error:', error);
     return (
       <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <SpotlightHeader currentTime={currentTime} liveUpdateCount={liveUpdateCount} />
           <p className="text-red-400 mb-4">Failed to load spotlight content</p>
           <Button
             onClick={handleUpdateSpotlight}
+            disabled={isUpdating}
             className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -180,17 +173,25 @@ const SpotlightSection = () => {
   if (!spotlightArticles || spotlightArticles.length === 0) {
     return (
       <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <SpotlightHeader currentTime={currentTime} liveUpdateCount={liveUpdateCount} />
-          <p className="text-muted-foreground mb-6">No spotlight content available. Generate fresh breaking news now!</p>
-          <Button
-            onClick={handleUpdateSpotlight}
-            disabled={isUpdating}
-            className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Generate Fresh Spotlight
-          </Button>
+          <div className="py-12">
+            <h3 className="text-2xl font-bold text-pulsee-white mb-4">
+              No Spotlight Available
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Generate fresh breaking news spotlight now! Our AI will analyze current events to bring you the most important news.
+            </p>
+            <Button
+              onClick={handleUpdateSpotlight}
+              disabled={isUpdating}
+              className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Generate Fresh Spotlight
+            </Button>
+          </div>
         </div>
       </section>
     );
