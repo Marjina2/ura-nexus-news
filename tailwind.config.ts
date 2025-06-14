@@ -71,6 +71,12 @@ export default {
 					white: '#ffffffde',
 					green: '#00ff9d',
 					'green-hover': '#00e68a',
+				},
+				pulsee: {
+					black: '#0a0a0a',
+					white: '#ffffffde',
+					green: '#00ff9d',
+					'green-hover': '#00e68a',
 				}
 			},
 			borderRadius: {

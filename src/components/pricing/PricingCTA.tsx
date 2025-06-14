@@ -13,18 +13,18 @@ const PricingCTA = () => {
           Ready to Get Started?
         </h2>
         <p className="text-xl text-muted-foreground mb-8">
-          Join thousands of users who trust Plusee for their daily news
+          Join thousands of users who trust Pulsee for their daily news
         </p>
         {!user ? (
           <Button 
-            className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover px-8 py-3 text-lg"
+            className="bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover px-8 py-3 text-lg"
             onClick={() => window.location.href = '/auth'}
           >
             Start Your Free Trial
           </Button>
         ) : (
           <Button 
-            className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover px-8 py-3 text-lg"
+            className="bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover px-8 py-3 text-lg"
             onClick={() => window.location.href = '/dashboard'}
           >
             Go to Dashboard

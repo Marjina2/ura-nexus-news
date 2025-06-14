@@ -40,7 +40,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-ura-black text-ura-white">
+    <div className="min-h-screen bg-pulsee-black text-ura-white">
       <Router>
         <Routes>
           <Route path="/" element={<Index />} />
