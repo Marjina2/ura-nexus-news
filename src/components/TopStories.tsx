@@ -18,6 +18,16 @@ const TopStories = () => {
     navigate(`/article?data=${articleData}`);
   };
 
+  const cleanTitle = (title: string) => {
+    // Remove numbers, special characters, and clean up the title
+    return title
+      .replace(/^\d+\.\s*/, '') // Remove leading numbers like "1. "
+      .replace(/\[\d+\]/g, '') // Remove numbers in brackets like [1]
+      .replace(/\(\d+\)/g, '') // Remove numbers in parentheses like (1)
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim();
+  };
+
   const formatTimeAgo = (publishedAt: string) => {
     const now = new Date();
     const published = new Date(publishedAt);
@@ -70,7 +80,7 @@ const TopStories = () => {
   // Combine and prioritize articles: cached articles first, then fresh articles
   const allAvailableArticles = [
     ...(cachedArticles || []).map(article => ({
-      title: article.title,
+      title: cleanTitle(article.title),
       description: article.description,
       url: article.url,
       urlToImage: article.url_to_image,
@@ -81,6 +91,7 @@ const TopStories = () => {
     })),
     ...(articles || []).slice(0, 8).map(article => ({
       ...article,
+      title: cleanTitle(article.title),
       isPriority: false
     }))
   ].slice(0, 6); // Show top 6 stories
