@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Sparkles, Zap, Globe } from 'lucide-react';
@@ -7,6 +7,16 @@ import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const words = ['News', 'Insights', 'Stories', 'Analysis', 'Updates'];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prevIndex) => (prevIndex + 1) % words.length);
+    }, 2000); // Change word every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [words.length]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-ura-black via-ura-black to-purple-900/20 overflow-hidden">
@@ -30,10 +40,16 @@ const Hero = () => {
             <span className="text-sm text-ura-white">AI-Powered News Platform</span>
           </div>
 
-          {/* Main Heading */}
+          {/* Main Heading with Animated Text */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-ura-white leading-tight">
-              News That{' '}
+              <span 
+                key={currentWordIndex}
+                className="inline-block gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
+              >
+                {words[currentWordIndex]}
+              </span>{' '}
+              That{' '}
               <span className="gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent">
                 Thinks
               </span>
