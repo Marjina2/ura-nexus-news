@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ClerkProvider } from '@clerk/clerk-react';
 import { AuthProvider } from './contexts/AuthContext';
 import SecurityWrapper from './components/SecurityWrapper';
 import Index from "./pages/Index";
@@ -32,50 +31,42 @@ import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-if (!clerkPubKey) {
-  throw new Error("Missing Publishable Key");
-}
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <SecurityWrapper>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/news" element={<News />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/article/:id" element={<Article />} />
-                <Route path="/account" element={<AccountSettings />} />
-                <Route path="/trending" element={<Trending />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/ai-picks" element={<AIPicks />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/licensing" element={<Licensing />} />
-                <Route path="/api" element={<API />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/help" element={<Help />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </SecurityWrapper>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ClerkProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <SecurityWrapper>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/article/:id" element={<Article />} />
+              <Route path="/account" element={<AccountSettings />} />
+              <Route path="/trending" element={<Trending />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/ai-picks" element={<AIPicks />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/licensing" element={<Licensing />} />
+              <Route path="/api" element={<API />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SecurityWrapper>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

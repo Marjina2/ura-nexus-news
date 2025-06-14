@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Crown, Star, Building } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/contexts/AuthContext';
 import PricingCard from './PricingCard';
 
 const PricingPlans = () => {
-  const { user } = useUser();
-  const isPro = user?.publicMetadata?.subscription === 'pro';
+  const { user } = useAuth();
+  const isPro = false; // For now, set to false since we don't have subscription logic
 
   const plans = [
     {

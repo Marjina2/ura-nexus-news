@@ -1,16 +1,16 @@
 
 import React from 'react';
 import { Crown, Star, Building, Check } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Pricing = () => {
-  const { user } = useUser();
-  const isPro = user?.publicMetadata?.subscription === 'pro';
+  const { user } = useAuth();
+  const isPro = false; // For now, set to false since we don't have subscription logic
 
   const plans = [
     {
@@ -147,19 +147,16 @@ const Pricing = () => {
                   </CardContent>
 
                   <CardFooter>
-                    <SignedOut>
-                      <SignInButton mode="modal">
-                        <Button 
-                          className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
-                          variant={plan.popular ? 'default' : 'outline'}
-                          disabled={plan.comingSoon}
-                        >
-                          {plan.comingSoon ? plan.buttonText : 'Get Started'}
-                        </Button>
-                      </SignInButton>
-                    </SignedOut>
-
-                    <SignedIn>
+                    {!user ? (
+                      <Button 
+                        className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
+                        variant={plan.popular ? 'default' : 'outline'}
+                        disabled={plan.comingSoon}
+                        onClick={() => window.location.href = '/auth'}
+                      >
+                        {plan.comingSoon ? plan.buttonText : 'Get Started'}
+                      </Button>
+                    ) : (
                       <Button 
                         className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
                         variant={plan.current ? 'secondary' : plan.popular ? 'default' : 'outline'}
@@ -167,7 +164,7 @@ const Pricing = () => {
                       >
                         {plan.buttonText}
                       </Button>
-                    </SignedIn>
+                    )}
                   </CardFooter>
                 </Card>
               ))}
@@ -199,21 +196,21 @@ const Pricing = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Join thousands of users who trust URA for their daily news
             </p>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button className="bg-ura-green text-ura-black hover:bg-ura-green-hover px-8 py-3 text-lg">
-                  Start Your Free Trial
-                </Button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
+            {!user ? (
+              <Button 
+                className="bg-ura-green text-ura-black hover:bg-ura-green-hover px-8 py-3 text-lg"
+                onClick={() => window.location.href = '/auth'}
+              >
+                Start Your Free Trial
+              </Button>
+            ) : (
               <Button 
                 className="bg-ura-green text-ura-black hover:bg-ura-green-hover px-8 py-3 text-lg"
                 onClick={() => window.location.href = '/dashboard'}
               >
                 Go to Dashboard
               </Button>
-            </SignedIn>
+            )}
           </div>
         </section>
       </main>

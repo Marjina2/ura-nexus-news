@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Check } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,8 @@ interface PricingCardProps {
 }
 
 const PricingCard = ({ plan }: PricingCardProps) => {
+  const { user } = useAuth();
+
   return (
     <Card className={`relative ${plan.popular ? 'border-ura-green shadow-2xl scale-105' : 'border-border'} hover-lift`}>
       {plan.popular && (
@@ -58,19 +60,16 @@ const PricingCard = ({ plan }: PricingCardProps) => {
       </CardContent>
 
       <CardFooter>
-        <SignedOut>
-          <SignInButton mode="modal">
-            <Button 
-              className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
-              variant={plan.popular ? 'default' : 'outline'}
-              disabled={plan.comingSoon}
-            >
-              {plan.comingSoon ? plan.buttonText : 'Get Started'}
-            </Button>
-          </SignInButton>
-        </SignedOut>
-
-        <SignedIn>
+        {!user ? (
+          <Button 
+            className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
+            variant={plan.popular ? 'default' : 'outline'}
+            disabled={plan.comingSoon}
+            onClick={() => window.location.href = '/auth'}
+          >
+            {plan.comingSoon ? plan.buttonText : 'Get Started'}
+          </Button>
+        ) : (
           <Button 
             className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
             variant={plan.current ? 'secondary' : plan.popular ? 'default' : 'outline'}
@@ -78,7 +77,7 @@ const PricingCard = ({ plan }: PricingCardProps) => {
           >
             {plan.buttonText}
           </Button>
-        </SignedIn>
+        )}
       </CardFooter>
     </Card>
   );
