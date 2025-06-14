@@ -19,11 +19,11 @@ const Hero = () => {
   }, [words.length]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-ura-black via-ura-black to-purple-900/20 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-plusee-black via-plusee-black to-purple-900/20 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Animated Background Circles */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-ura-green/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-plusee-green/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-128 h-128 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-2000" />
         
@@ -35,22 +35,22 @@ const Hero = () => {
         {/* Main Content */}
         <div className="space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 bg-ura-green/10 backdrop-blur-sm border border-ura-green/20 rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-ura-green" />
-            <span className="text-sm text-ura-white">AI-Powered News Platform</span>
+          <div className="inline-flex items-center space-x-2 bg-plusee-green/10 backdrop-blur-sm border border-plusee-green/20 rounded-full px-4 py-2">
+            <Sparkles className="w-4 h-4 text-plusee-green" />
+            <span className="text-sm text-plusee-white">AI-Powered News Platform</span>
           </div>
 
           {/* Main Heading with Animated Text */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-ura-white leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-plusee-white leading-tight">
               <span 
                 key={currentWordIndex}
-                className="inline-block gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
+                className="inline-block gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent animate-fade-in"
               >
                 {words[currentWordIndex]}
               </span>{' '}
               That{' '}
-              <span className="gradient-text bg-gradient-to-r from-ura-green to-blue-400 bg-clip-text text-transparent">
+              <span className="gradient-text bg-gradient-to-r from-plusee-green to-blue-400 bg-clip-text text-transparent">
                 Thinks
               </span>
               <br />
@@ -73,7 +73,7 @@ const Hero = () => {
               <Badge 
                 key={index}
                 variant="secondary" 
-                className="bg-card/50 backdrop-blur-sm border-ura-green/20 text-ura-white px-4 py-2"
+                className="bg-card/50 backdrop-blur-sm border-plusee-green/20 text-plusee-white px-4 py-2"
               >
                 <feature.icon className="w-3 h-3 mr-2" />
                 {feature.text}
@@ -85,7 +85,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-4">
             <Button 
               size="lg" 
-              className="bg-ura-green text-ura-black hover:bg-ura-green-hover font-semibold px-8 py-4 text-lg group"
+              className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover font-semibold px-8 py-4 text-lg group"
               onClick={() => navigate('/news')}
             >
               Read Now
@@ -95,7 +95,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black px-8 py-4 text-lg"
+              className="border-plusee-green text-plusee-green hover:bg-plusee-green hover:text-plusee-black px-8 py-4 text-lg"
               onClick={() => navigate('/about')}
             >
               Learn More
@@ -106,7 +106,7 @@ const Hero = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-12">
             {/* Reader Count */}
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-ura-green mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-plusee-green mb-2">
                 Growing Community
               </div>
               <div className="text-muted-foreground">
@@ -140,7 +140,7 @@ const Hero = () => {
                     fill="#EA4335"
                   />
                 </svg>
-                <div className="text-3xl md:text-4xl font-bold text-ura-green">
+                <div className="text-3xl md:text-4xl font-bold text-plusee-green">
                   Google Partner
                 </div>
               </div>
@@ -153,7 +153,7 @@ const Hero = () => {
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-ura-black to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-plusee-black to-transparent" />
     </section>
   );
 };

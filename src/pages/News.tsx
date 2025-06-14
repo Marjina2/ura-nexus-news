@@ -38,7 +38,7 @@ const News = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ura-black">
+    <div className="min-h-screen bg-plusee-black">
       <Header />
       <main className="pt-32 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,7 +46,7 @@ const News = () => {
           <Button 
             onClick={() => navigate('/')} 
             variant="ghost" 
-            className="mb-6 text-ura-white hover:text-ura-green"
+            className="mb-6 text-plusee-white hover:text-plusee-green"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -57,7 +57,7 @@ const News = () => {
 
           {/* Page Header */}
           <div className="text-center mb-8 mt-16">
-            <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold text-plusee-white mb-4">
               Latest Fresh News
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -68,19 +68,19 @@ const News = () => {
           {/* Filters */}
           <div className="bg-card/20 backdrop-blur-sm border border-border rounded-lg p-6 mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <Filter className="w-5 h-5 text-ura-green" />
-              <h3 className="text-lg font-semibold text-ura-white">Filter News</h3>
+              <Filter className="w-5 h-5 text-plusee-green" />
+              <h3 className="text-lg font-semibold text-plusee-white">Filter News</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* Country Selector */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-ura-white flex items-center gap-2">
+                <label className="text-sm font-medium text-plusee-white flex items-center gap-2">
                   <Globe className="w-4 h-4" />
                   Country
                 </label>
                 <Select value={selectedCountry} onValueChange={handleCountryChange}>
-                  <SelectTrigger className="bg-card border-border text-ura-white">
+                  <SelectTrigger className="bg-card border-border text-plusee-white">
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -95,11 +95,11 @@ const News = () => {
 
               {/* Category Selector */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-ura-white">
+                <label className="text-sm font-medium text-plusee-white">
                   Category
                 </label>
                 <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                  <SelectTrigger className="bg-card border-border text-ura-white">
+                  <SelectTrigger className="bg-card border-border text-plusee-white">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -123,8 +123,8 @@ const News = () => {
                   size="sm"
                   className={
                     selectedCategory === category
-                      ? "bg-ura-green text-ura-black hover:bg-ura-green-hover"
-                      : "border-ura-green/30 hover:border-ura-green text-ura-white"
+                      ? "bg-plusee-green text-plusee-black hover:bg-plusee-green-hover"
+                      : "border-plusee-green/30 hover:border-plusee-green text-plusee-white"
                   }
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}

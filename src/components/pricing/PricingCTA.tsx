@@ -13,18 +13,18 @@ const PricingCTA = () => {
           Ready to Get Started?
         </h2>
         <p className="text-xl text-muted-foreground mb-8">
-          Join thousands of users who trust URA for their daily news
+          Join thousands of users who trust Plusee for their daily news
         </p>
         {!user ? (
           <Button 
-            className="bg-ura-green text-ura-black hover:bg-ura-green-hover px-8 py-3 text-lg"
+            className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover px-8 py-3 text-lg"
             onClick={() => window.location.href = '/auth'}
           >
             Start Your Free Trial
           </Button>
         ) : (
           <Button 
-            className="bg-ura-green text-ura-black hover:bg-ura-green-hover px-8 py-3 text-lg"
+            className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover px-8 py-3 text-lg"
             onClick={() => window.location.href = '/dashboard'}
           >
             Go to Dashboard

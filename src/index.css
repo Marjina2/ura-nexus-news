@@ -37,11 +37,11 @@
 
     --radius: 0.75rem;
 
-    /* Custom URA brand colors */
-    --ura-black: 0 0% 4%;
-    --ura-white: 0 0% 98%;
-    --ura-green: 159 100% 50%;
-    --ura-green-hover: 159 100% 45%;
+    /* Custom Plusee brand colors */
+    --plusee-black: 0 0% 4%;
+    --plusee-white: 0 0% 98%;
+    --plusee-green: 159 100% 50%;
+    --plusee-green-hover: 159 100% 45%;
   }
 
   .dark {
@@ -88,23 +88,27 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
-  .text-ura-white {
+  .text-plusee-white {
     color: #ffffffde;
   }
 
-  .text-ura-green {
+  .text-plusee-green {
     color: #00ff9d;
   }
 
-  .bg-ura-black {
+  .bg-plusee-black {
     background-color: #0a0a0a;
   }
 
-  .bg-ura-green {
+  .bg-plusee-green {
     background-color: #00ff9d;
   }
 
-  .border-ura-green {
+  .bg-plusee-green-hover {
+    background-color: #00e68a;
+  }
+
+  .border-plusee-green {
     border-color: #00ff9d;
   }
 
