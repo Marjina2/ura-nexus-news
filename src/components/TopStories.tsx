@@ -3,13 +3,15 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Star, BookOpen } from 'lucide-react';
+import { Clock, Star, BookOpen, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNews } from '@/hooks/useNews';
+import { useCachedArticles } from '@/hooks/useNews';
 
 const TopStories = () => {
   const navigate = useNavigate();
-  const { articles, isLoading, error } = useNews('general');
+  const { articles, isLoading, error } = useNews('general', 'in');
+  const { data: cachedArticles } = useCachedArticles();
 
   const handleArticleRead = (article: any) => {
     const articleData = encodeURIComponent(JSON.stringify(article));
@@ -36,12 +38,12 @@ const TopStories = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-ura-black">
+      <section className="py-16 bg-plusee-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-3">
-              <Star className="w-6 h-6 text-ura-green" />
-              <h2 className="text-3xl font-bold text-ura-white">Top Stories</h2>
+              <Star className="w-6 h-6 text-plusee-green" />
+              <h2 className="text-3xl font-bold text-plusee-white">Top Stories from India</h2>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,33 +67,59 @@ const TopStories = () => {
     console.error('TopStories error:', error);
   }
 
-  const topStories = articles?.slice(4, 10) || [];
+  // Combine and prioritize articles: cached articles first, then fresh articles
+  const allAvailableArticles = [
+    ...(cachedArticles || []).map(article => ({
+      title: article.title,
+      description: article.description,
+      url: article.url,
+      urlToImage: article.url_to_image,
+      publishedAt: article.published_at,
+      source: { name: article.source_name },
+      content: article.content,
+      isPriority: true // Mark cached articles as priority
+    })),
+    ...(articles || []).slice(0, 8).map(article => ({
+      ...article,
+      isPriority: false
+    }))
+  ].slice(0, 6); // Show top 6 stories
 
   return (
-    <section className="py-16 bg-ura-black">
+    <section className="py-16 bg-plusee-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
-            <Star className="w-6 h-6 text-ura-green" />
-            <h2 className="text-3xl font-bold text-ura-white">Top Stories</h2>
-            <Badge variant="secondary" className="bg-ura-green text-ura-black">
-              From India
+            <Star className="w-6 h-6 text-plusee-green" />
+            <h2 className="text-3xl font-bold text-plusee-white">Top Stories from India</h2>
+            <Badge variant="secondary" className="bg-plusee-green text-plusee-black">
+              <MapPin className="w-3 h-3 mr-1" />
+              Live Updates
             </Badge>
           </div>
-          <button 
+          <Button 
             onClick={() => navigate('/news')}
-            className="text-ura-green hover:text-ura-green-hover transition-colors"
+            variant="outline"
+            className="border-plusee-green text-plusee-green hover:bg-plusee-green hover:text-plusee-black transition-colors"
           >
-            View All
-          </button>
+            View All News
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topStories.map((article, index) => (
+          {allAvailableArticles.map((article, index) => (
             <Card 
               key={`${article.url}-${index}`}
-              className="group bg-card border-border hover-lift overflow-hidden"
+              className="group bg-card border-border hover-lift overflow-hidden relative"
             >
+              {article.isPriority && (
+                <div className="absolute top-2 left-2 z-10">
+                  <Badge className="bg-plusee-green text-plusee-black text-xs">
+                    Priority
+                  </Badge>
+                </div>
+              )}
+              
               <div className="relative">
                 <img
                   src={getImageUrl(article.urlToImage)}
@@ -102,15 +130,15 @@ const TopStories = () => {
                     target.src = 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
                   }}
                 />
-                <div className="absolute top-3 left-3">
-                  <Badge variant="secondary" className="bg-ura-green text-ura-black">
+                <div className="absolute top-3 right-3">
+                  <Badge variant="secondary" className="bg-plusee-black/80 text-plusee-white backdrop-blur-sm">
                     {article.source.name}
                   </Badge>
                 </div>
                 <div className="absolute bottom-3 right-3">
                   <Button
                     onClick={() => handleArticleRead(article)}
-                    className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                    className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover"
                     size="sm"
                   >
                     <BookOpen className="w-3 h-3 mr-1" />
@@ -120,11 +148,12 @@ const TopStories = () => {
               </div>
               
               <CardContent className="p-4">
-                <h3 className="font-semibold text-ura-white mb-2 line-clamp-2">
+                <h3 className="font-semibold text-plusee-white mb-2 line-clamp-2 hover:text-plusee-green transition-colors cursor-pointer" 
+                    onClick={() => handleArticleRead(article)}>
                   {article.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {article.description}
+                  {article.description || 'Latest news update from India...'}
                 </p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
@@ -137,6 +166,21 @@ const TopStories = () => {
             </Card>
           ))}
         </div>
+
+        {allAvailableArticles.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground mb-4">
+              <Star className="w-12 h-12 mx-auto mb-2 text-plusee-green/50" />
+              <p>Loading the latest Indian news stories...</p>
+            </div>
+            <Button 
+              onClick={() => navigate('/news')}
+              className="bg-plusee-green text-plusee-black hover:bg-plusee-green-hover"
+            >
+              Browse All News
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );
