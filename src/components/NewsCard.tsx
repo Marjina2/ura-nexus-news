@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock } from 'lucide-react';
+import { Clock, TrendingUp } from 'lucide-react';
 import { NewsArticle } from '@/hooks/useNews';
 
 interface NewsCardProps {
@@ -73,8 +73,13 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
 
   const cleanedTitle = cleanTitle(article.title);
 
+  const handleReadClick = () => {
+    console.log('NewsCard: Read button clicked for article:', cleanedTitle);
+    onRead(article);
+  };
+
   return (
-    <Card className="bg-card border-border hover:border-ura-green/30 transition-all duration-300 group">
+    <Card className="bg-card/60 backdrop-blur-sm border-border/50 hover:border-ura-green/50 transition-all duration-300 group hover:shadow-lg hover:shadow-ura-green/10">
       <div className="relative overflow-hidden rounded-t-lg">
         <img 
           src={getImageUrl(article.urlToImage || article.image_url, cleanedTitle)}
@@ -86,32 +91,34 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onRead }) => {
           }}
         />
         <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="bg-ura-green text-ura-black">
-            News
+          <Badge variant="secondary" className="bg-ura-green/90 text-ura-black font-medium">
+            <TrendingUp className="w-3 h-3 mr-1" />
+            Fresh
           </Badge>
         </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
       
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Clock className="w-4 h-4" />
           {formatDate(article.publishedAt || article.published_at || '')}
         </div>
         
-        <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
+        <h3 className="text-lg font-semibold text-ura-white mb-3 line-clamp-2 group-hover:text-ura-green transition-colors leading-tight">
           {cleanedTitle}
         </h3>
         
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
           {article.description}
         </p>
         
         <div className="flex gap-2">
           <Button 
-            onClick={() => onRead(article)}
-            className="flex-1 bg-ura-green text-ura-black hover:bg-ura-green-hover"
+            onClick={handleReadClick}
+            className="flex-1 bg-gradient-to-r from-ura-green to-ura-green-hover text-ura-black hover:from-ura-green-hover hover:to-ura-green font-medium transition-all duration-300 hover:shadow-lg hover:shadow-ura-green/25"
           >
-            Read Article
+            Read Now
           </Button>
         </div>
       </CardContent>

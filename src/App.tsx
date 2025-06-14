@@ -18,6 +18,7 @@ import AIPicks from '@/pages/AIPicks';
 import Search from '@/pages/Search';
 import AuthCallback from '@/pages/AuthCallback';
 import ProfileCompletion from '@/components/auth/ProfileCompletion';
+import News from '@/pages/News';
 import { useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ function AppContent() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/account" element={<AccountSettings />} />
           <Route path="/article" element={<Article />} />
+          <Route path="/news" element={<News />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/ai-picks" element={<AIPicks />} />
           <Route path="/search" element={<Search />} />
