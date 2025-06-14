@@ -26,17 +26,27 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ category, country = 'in', onArticle
     }
   };
 
+  // Convert AI articles to NewsArticle format
+  const convertAIToNewsArticle = (aiArticle: any): NewsArticle => ({
+    id: aiArticle.id,
+    title: aiArticle.title,
+    description: aiArticle.summary || aiArticle.content.substring(0, 200) + '...',
+    url: `#ai-article-${aiArticle.id}`, // Placeholder URL for AI articles
+    urlToImage: aiArticle.image_url,
+    publishedAt: aiArticle.published_at,
+    source: { name: 'AI News Assistant' },
+    content: aiArticle.content,
+    isAI: true,
+    image_url: aiArticle.image_url,
+    published_at: aiArticle.published_at,
+    tags: aiArticle.tags
+  });
+
   // Combine regular and AI articles
   const combinedArticles = [
-    ...(aiArticles || []).map(article => ({
-      ...article,
-      source: { name: 'AI News Assistant' },
-      urlToImage: article.image_url,
-      publishedAt: article.published_at,
-      isAI: true
-    })),
+    ...(aiArticles || []).map(convertAIToNewsArticle),
     ...(articles || [])
-  ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  ].sort((a, b) => new Date(b.publishedAt || b.published_at || '').getTime() - new Date(a.publishedAt || a.published_at || '').getTime());
 
   if (error) {
     return (

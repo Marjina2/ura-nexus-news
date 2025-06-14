@@ -151,7 +151,7 @@ This story serves as a reminder of the importance of staying informed about curr
             {(article.urlToImage || article.image_url) && (
               <div className="relative overflow-hidden rounded-t-lg">
                 <img 
-                  src={article.urlToImage || article.image_url}
+                  src={article.urlToImage || article.image_url || ''}
                   alt={article.title}
                   className="w-full h-64 md:h-96 object-cover"
                   onError={(e) => {
@@ -177,7 +177,7 @@ This story serves as a reminder of the importance of staying informed about curr
                 </Badge>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
-                  {formatDate(article.publishedAt || article.published_at)}
+                  {formatDate(article.publishedAt || article.published_at || '')}
                 </div>
               </div>
 

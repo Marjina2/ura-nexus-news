@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,9 @@ export interface NewsArticle {
   content?: string;
   id?: string;
   isAI?: boolean;
+  image_url?: string;
+  published_at?: string;
+  tags?: string[];
 }
 
 export interface EnhancedArticle extends NewsArticle {
@@ -22,6 +26,8 @@ export interface EnhancedArticle extends NewsArticle {
   keyPoints?: string[];
   enhancedContent?: string;
   tags?: string[];
+  image_url?: string;
+  published_at?: string;
 }
 
 export interface AIGeneratedArticle {
