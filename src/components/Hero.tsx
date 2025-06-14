@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Hero = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [readerCount, setReaderCount] = useState(346);
 
   useEffect(() => {
@@ -106,8 +106,8 @@ const Hero = () => {
             </Button>
           </div>
 
-          {/* Upgrade to Pro Button for non-pro users */}
-          {user && user.publicMetadata?.subscription !== 'pro' && (
+          {/* Upgrade to Pro Button for users without pro subscription */}
+          {user && profile && !profile.subscription && (
             <div className="mb-8">
               <Button 
                 size="lg" 
