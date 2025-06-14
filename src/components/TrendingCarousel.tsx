@@ -8,9 +8,12 @@ import { useNews } from '@/hooks/useNews';
 
 const TrendingCarousel = () => {
   const navigate = useNavigate();
-  const { articles, isLoading } = useNews('general');
+  const { articles, isLoading, error } = useNews('general');
+
+  console.log('TrendingCarousel - articles:', articles?.length, 'isLoading:', isLoading, 'error:', error);
 
   const handleArticleClick = (article: any) => {
+    console.log('Article clicked:', article.title);
     const articleData = encodeURIComponent(JSON.stringify(article));
     navigate(`/article?data=${articleData}`);
   };
@@ -27,9 +30,9 @@ const TrendingCarousel = () => {
   };
 
   const getImageUrl = (url: string | null) => {
-    if (!url) return '/placeholder.svg';
+    if (!url) return 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
     if (url.startsWith('//')) return `https:${url}`;
-    if (url.startsWith('/')) return '/placeholder.svg';
+    if (url.startsWith('/')) return 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
     return url;
   };
 
@@ -60,7 +63,11 @@ const TrendingCarousel = () => {
     );
   }
 
-  const trendingArticles = articles.slice(0, 4);
+  if (error) {
+    console.error('TrendingCarousel error:', error);
+  }
+
+  const trendingArticles = articles?.slice(0, 4) || [];
 
   return (
     <section className="py-16 bg-card/20">
@@ -70,6 +77,9 @@ const TrendingCarousel = () => {
           <div className="flex items-center space-x-3">
             <TrendingUp className="w-6 h-6 text-ura-green" />
             <h2 className="text-3xl font-bold text-ura-white">Trending Now</h2>
+            <Badge variant="secondary" className="bg-ura-green text-ura-black">
+              Latest from India
+            </Badge>
           </div>
           <button 
             onClick={() => navigate('/news')}
@@ -94,7 +104,7 @@ const TrendingCarousel = () => {
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = '/placeholder.svg';
+                    target.src = 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop';
                   }}
                 />
                 <div className="absolute top-3 left-3">

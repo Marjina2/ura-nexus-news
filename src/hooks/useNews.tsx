@@ -40,18 +40,26 @@ export const useNews = (category: string = 'general') => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['news', category, page],
     queryFn: async () => {
+      console.log('Fetching news for category:', category, 'page:', page);
       const { data, error } = await supabase.functions.invoke('fetch-news', {
-        body: { category, page, country: 'in' } // Focus on Indian news
+        body: { category, page, country: 'in' }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from fetch-news function:', error);
+        throw error;
+      }
+      console.log('Received news data:', data);
       return data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 60 * 60 * 1000, // Refetch every hour
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
     if (data?.articles) {
+      console.log('Setting articles:', data.articles.length);
       if (page === 1) {
         setAllArticles(data.articles);
       } else {
