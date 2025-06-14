@@ -53,12 +53,6 @@ const News = () => {
             Back to Home
           </Button>
 
-          {/* AI News Section - Moved to top */}
-          <AINewsSection 
-            category={selectedCategory}
-            country={selectedCountry}
-          />
-
           {/* Page Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
@@ -136,6 +130,12 @@ const News = () => {
               ))}
             </div>
           </div>
+
+          {/* AI News Section - Moved here after filters */}
+          <AINewsSection 
+            category={selectedCategory}
+            country={selectedCountry}
+          />
 
           {/* Today's Spotlight Section */}
           <SpotlightSection />

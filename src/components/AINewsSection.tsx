@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Crown, Settings, Key } from 'lucide-react';
+import { Sparkles, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AINewsSectionProps {
@@ -13,27 +12,7 @@ interface AINewsSectionProps {
 
 const AINewsSection = ({ category, country }: AINewsSectionProps) => {
   const { user } = useAuth();
-  const [serpApiKey, setSerpApiKey] = useState('');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const isPremiumUser = !!user;
-
-  // Load saved API key on component mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('serpApiKey');
-    if (savedApiKey) {
-      setSerpApiKey(savedApiKey);
-    } else {
-      // Set the provided API key as default
-      const defaultApiKey = '18192c65ffa42fc628064e86f1e811100df2950e2ba97dc389701710a93c73c5';
-      setSerpApiKey(defaultApiKey);
-      localStorage.setItem('serpApiKey', defaultApiKey);
-    }
-  }, []);
-
-  const handleSaveApiKey = () => {
-    localStorage.setItem('serpApiKey', serpApiKey);
-    setShowApiKeyInput(false);
-  };
 
   const handleGenerateAINews = () => {
     if (!isPremiumUser) {
@@ -41,13 +20,8 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
       return;
     }
 
-    if (!serpApiKey) {
-      setShowApiKeyInput(true);
-      return;
-    }
-
-    // Generate AI news with SERP API
-    console.log('Generating AI news with SERP API:', serpApiKey);
+    // Generate AI news functionality
+    console.log('Generating AI news for category:', category, 'country:', country);
   };
 
   return (
@@ -60,61 +34,14 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
             {category.charAt(0).toUpperCase() + category.slice(1)} • {country.toUpperCase()}
           </Badge>
         </div>
-        
-        <Button
-          onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-          variant="outline"
-          size="sm"
-          className="border-ura-green/30 text-ura-green hover:bg-ura-green hover:text-ura-black"
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          SERP API
-        </Button>
       </div>
 
       <p className="text-muted-foreground mb-4">
         {isPremiumUser 
-          ? `AI-generated fresh news articles about ${category} from ${country === 'in' ? 'India' : 'your region'} powered by SERP API with real-time Google search integration`
-          : 'Upgrade to premium to access AI-generated fresh news articles powered by SERP API'
+          ? `AI-generated fresh news articles about ${category} from ${country === 'in' ? 'India' : 'your region'} powered by our advanced AI models`
+          : 'Upgrade to premium to access AI-generated fresh news articles powered by our advanced AI models'
         }
       </p>
-
-      {/* SERP API Key Input */}
-      {showApiKeyInput && (
-        <div className="bg-card/20 backdrop-blur-sm border border-border rounded-lg p-4 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Key className="w-4 h-4 text-ura-green" />
-            <label className="text-sm font-medium text-ura-white">SERP API Key</label>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="password"
-              placeholder="Enter your SERP API key"
-              value={serpApiKey}
-              onChange={(e) => setSerpApiKey(e.target.value)}
-              className="bg-card border-border text-ura-white"
-            />
-            <Button
-              onClick={handleSaveApiKey}
-              size="sm"
-              className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
-            >
-              Save
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Get your SERP API key from{' '}
-            <a 
-              href="https://serpapi.com/dashboard" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-ura-green hover:underline"
-            >
-              serpapi.com/dashboard
-            </a>
-          </p>
-        </div>
-      )}
 
       <Button
         onClick={handleGenerateAINews}
@@ -122,12 +49,12 @@ const AINewsSection = ({ category, country }: AINewsSectionProps) => {
         className={`w-full ${
           isPremiumUser 
             ? 'bg-gradient-to-r from-ura-green to-blue-500 text-white hover:from-ura-green-hover hover:to-blue-600' 
-            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+            : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800'
         }`}
       >
         {!isPremiumUser && <Crown className="w-4 h-4 mr-2" />}
         <Sparkles className="w-4 h-4 mr-2" />
-        {isPremiumUser ? 'Generate Fresh News with SERP API' : 'Premium Feature - Upgrade Now'}
+        {isPremiumUser ? 'Generate Fresh News with AI' : 'Premium Feature - Upgrade Now'}
       </Button>
     </div>
   );
