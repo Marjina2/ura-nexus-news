@@ -6,6 +6,17 @@ import { RefreshCw, ExternalLink } from 'lucide-react';
 import { useSpotlightNews } from '@/hooks/useSpotlightNews';
 import SpotlightLoading from '@/components/spotlight/SpotlightLoading';
 
+const isToday = (dateString: string) => {
+  const today = new Date().toISOString().slice(0, 10);
+  return dateString === today;
+};
+
+const formatDateReadable = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString(undefined, {
+    year: "numeric", month: "short", day: "numeric"
+  });
+};
+
 const SpotlightSection = () => {
   const navigate = useNavigate();
   const { data: spotlight, isLoading, error, refetch } = useSpotlightNews();
@@ -32,7 +43,7 @@ const SpotlightSection = () => {
             No Spotlight Available
           </h3>
           <p className="text-muted-foreground mb-6">
-            The daily news spotlight is still being generated. Please check back soon!
+            No AI Spotlight available yet. Please check back soon!
           </p>
           <Button onClick={() => refetch?.()} className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600">
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -42,6 +53,9 @@ const SpotlightSection = () => {
       </section>
     );
   }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const isSpotlightToday = isToday(spotlight.date);
 
   return (
     <section className="scroll-fade-in relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
@@ -53,7 +67,9 @@ const SpotlightSection = () => {
         </div>
         {/* Content */}
         <div className="flex-1">
-          <span className="inline-block mb-2 text-sm text-red-400 uppercase font-bold tracking-widest">Today's Spotlight</span>
+          <span className="inline-block mb-2 text-sm text-red-400 uppercase font-bold tracking-widest">
+            {isSpotlightToday ? "Today's Spotlight" : `Spotlight from ${formatDateReadable(spotlight.date)}`}
+          </span>
           <h2 className="text-3xl md:text-4xl font-bold text-pulsee-white mb-4">{spotlight.seo_title}</h2>
           <p className="mb-6 text-muted-foreground">{spotlight.summary}</p>
           <Button

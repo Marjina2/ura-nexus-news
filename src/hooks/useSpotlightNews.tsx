@@ -16,20 +16,34 @@ export interface SpotlightNews {
 
 export const useSpotlightNews = () => {
   return useQuery({
-    queryKey: ['spotlight-news-today'],
+    queryKey: ['spotlight-news-latest'],
     queryFn: async () => {
-      // Get today's date string YYYY-MM-DD
       const today = new Date().toISOString().slice(0, 10);
-      const { data, error } = await supabase
+
+      // Try to fetch today's spotlight
+      let { data, error } = await supabase
         .from('spotlight_news')
         .select('*')
         .eq('date', today)
         .maybeSingle();
 
       if (error) throw error;
+
+      // If not found, get the latest available (by date desc)
+      if (!data) {
+        const { data: latestList, error: error2 } = await supabase
+          .from('spotlight_news')
+          .select('*')
+          .order('date', { ascending: false })
+          .limit(1);
+
+        if (error2) throw error2;
+        data = latestList?.[0] ?? null;
+      }
+
       return data as SpotlightNews | null;
     },
-    refetchInterval: 15 * 60 * 1000, // refresh every 15min
+    refetchInterval: 15 * 60 * 1000,
     staleTime: 10 * 60 * 1000,
   });
 };
