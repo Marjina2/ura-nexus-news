@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Heart, Mail, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -110,14 +111,15 @@ const Footer = () => {
         <div className="py-6 border-t border-border">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © 2025 Plusee Labs. All rights reserved.
+              © 2025 Pulsee. All rights reserved.
             </div>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <span>Powered by AI</span>
-              <span>•</span>
-              <span>Built with</span>
+              <span>Made with</span>
               <Heart className="w-4 h-4 text-red-500 mx-1" />
-              <span>by Plusee Labs</span>
+              <span>in India</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Powered by UraLabs
             </div>
           </div>
         </div>
