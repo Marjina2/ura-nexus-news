@@ -4,43 +4,67 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Brain, ArrowRight, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useNews } from '@/hooks/useNews';
 
 const AIPicksSection = () => {
-  const aiEnhancedStories = [
-    {
-      id: 1,
-      title: "How Climate Change is Reshaping Global Agriculture",
-      originalTitle: "Climate Change Affects Farming",
-      summary: "Our AI has rewritten this story with deeper analysis, connecting climate patterns to specific agricultural impacts across different regions...",
-      category: "Environment",
-      readTime: "6 min",
-      enhancementType: "Enhanced Analysis",
-      confidence: 95,
-      image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=600&fit=crop&crop=focalpoint"
-    },
-    {
-      id: 2,
-      title: "The Hidden Economics Behind Cryptocurrency Adoption",
-      originalTitle: "Crypto Market Update",
-      summary: "AI-enhanced perspective on cryptocurrency trends, including socioeconomic factors and behavioral economics insights...",
-      category: "Finance",
-      readTime: "8 min",
-      enhancementType: "Deep Dive",
-      confidence: 92,
-      image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop&crop=focalpoint"
-    },
-    {
-      id: 3,
-      title: "Space Technology Innovations Transforming Earth-Based Industries",
-      originalTitle: "New Space Mission Launched",
-      summary: "Our AI connected space exploration advances to practical applications in telecommunications, materials science, and more...",
-      category: "Technology",
-      readTime: "7 min",
-      enhancementType: "Cross-Industry Analysis",
-      confidence: 89,
-      image: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&h=600&fit=crop&crop=focalpoint"
-    }
-  ];
+  const navigate = useNavigate();
+  const { articles, isLoading } = useNews('technology');
+
+  const handleArticleClick = (article: any) => {
+    const articleData = encodeURIComponent(JSON.stringify(article));
+    navigate(`/article?data=${articleData}`);
+  };
+
+  const formatTimeAgo = (publishedAt: string) => {
+    const now = new Date();
+    const published = new Date(publishedAt);
+    const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
+  };
+
+  const getImageUrl = (url: string | null) => {
+    if (!url) return '/placeholder.svg';
+    if (url.startsWith('//')) return `https:${url}`;
+    if (url.startsWith('/')) return '/placeholder.svg';
+    return url;
+  };
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-gradient-to-br from-ura-black to-purple-900/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-ura-white mb-4">
+              AI Picks - <span className="gradient-text">Enhanced Stories</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-card rounded-lg border border-border animate-pulse">
+                <div className="h-48 bg-muted rounded-t-lg" />
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-muted rounded" />
+                  <div className="h-3 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const aiEnhancedStories = articles.slice(0, 3).map((article, index) => ({
+    ...article,
+    enhancementType: ['Enhanced Analysis', 'Deep Dive', 'Cross-Industry Analysis'][index],
+    confidence: [95, 92, 89][index]
+  }));
 
   return (
     <section className="py-16 bg-gradient-to-br from-ura-black to-purple-900/10">
@@ -64,10 +88,11 @@ const AIPicksSection = () => {
 
         {/* AI Enhanced Stories Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {aiEnhancedStories.map((story) => (
+          {aiEnhancedStories.map((story, index) => (
             <Card 
-              key={story.id} 
+              key={`${story.url}-${index}`}
               className="group bg-card border-border hover-lift cursor-pointer overflow-hidden relative"
+              onClick={() => handleArticleClick(story)}
             >
               {/* AI Badge */}
               <div className="absolute top-4 left-4 z-10">
@@ -86,9 +111,13 @@ const AIPicksSection = () => {
 
               <div className="relative">
                 <img
-                  src={story.image}
+                  src={getImageUrl(story.urlToImage)}
                   alt={story.title}
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
@@ -96,31 +125,27 @@ const AIPicksSection = () => {
               <CardContent className="p-6">
                 <div className="flex items-center space-x-2 mb-3">
                   <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
-                    {story.category}
+                    {story.source.name}
                   </Badge>
                   <Badge variant="outline" className="border-ura-green/30 text-ura-green text-xs">
                     {story.enhancementType}
                   </Badge>
                 </div>
                 
-                <h3 className="font-bold text-ura-white mb-2 group-hover:text-ura-green transition-colors">
+                <h3 className="font-bold text-ura-white mb-2 group-hover:text-ura-green transition-colors line-clamp-2">
                   {story.title}
                 </h3>
                 
-                <div className="text-xs text-muted-foreground mb-3 italic">
-                  Original: "{story.originalTitle}"
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  {story.summary}
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed line-clamp-3">
+                  {story.description}
                 </p>
                 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
-                    <span>{story.readTime}</span>
+                    <span>6 min read</span>
                   </div>
-                  <span>Enhanced 2h ago</span>
+                  <span>Enhanced {formatTimeAgo(story.publishedAt)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -145,6 +170,7 @@ const AIPicksSection = () => {
                 <Button 
                   size="lg" 
                   className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                  onClick={() => navigate('/auth')}
                 >
                   Subscribe for AI Content
                   <ArrowRight className="ml-2 w-4 h-4" />
@@ -153,6 +179,7 @@ const AIPicksSection = () => {
                   variant="outline" 
                   size="lg" 
                   className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black"
+                  onClick={() => navigate('/news')}
                 >
                   View Free Samples
                 </Button>

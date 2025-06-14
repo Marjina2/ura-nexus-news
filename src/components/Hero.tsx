@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -50,7 +50,7 @@ const Hero = () => {
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Get personalized news summaries, AI-enhanced articles, and licensing opportunities 
-            for content creators. Stay informed with premium, rewritten content.
+            for content creators. Stay informed with premium content from India and around the world.
           </p>
 
           {/* CTA Buttons */}
@@ -70,8 +70,8 @@ const Hero = () => {
               className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black text-lg px-8 py-4"
               onClick={() => navigate('/pricing')}
             >
-              For Content Creators
-              <Zap className="ml-2 w-5 h-5" />
+              Get Content License
+              <FileText className="ml-2 w-5 h-5" />
             </Button>
           </div>
 
@@ -79,7 +79,7 @@ const Hero = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="text-3xl font-bold text-ura-green mb-2">50K+</div>
-              <div className="text-muted-foreground">Articles Rewritten</div>
+              <div className="text-muted-foreground">Premium Articles</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-ura-green mb-2">10K+</div>

@@ -41,7 +41,7 @@ export const useNews = (category: string = 'general') => {
     queryKey: ['news', category, page],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('fetch-news', {
-        body: { category, page }
+        body: { category, page, country: 'in' } // Focus on Indian news
       });
 
       if (error) throw error;

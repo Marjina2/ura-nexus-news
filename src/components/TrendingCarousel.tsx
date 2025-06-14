@@ -3,46 +3,64 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useNews } from '@/hooks/useNews';
 
 const TrendingCarousel = () => {
-  const trendingNews = [
-    {
-      id: 1,
-      title: "AI Revolution Reshapes Global Economy",
-      summary: "Latest developments in artificial intelligence are transforming industries worldwide...",
-      category: "Tech",
-      readTime: "5 min",
-      trending: true,
-      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&crop=focalpoint"
-    },
-    {
-      id: 2,
-      title: "Climate Summit Reaches Historic Agreement",
-      summary: "World leaders unite on unprecedented climate action plan...",
-      category: "World",
-      readTime: "8 min",
-      trending: true,
-      image: "https://images.unsplash.com/photo-1569163139394-de4e5f43e4e3?w=800&h=600&fit=crop&crop=focalpoint"
-    },
-    {
-      id: 3,
-      title: "Breakthrough in Quantum Computing",
-      summary: "Scientists achieve major milestone in quantum technology development...",
-      category: "Science",
-      readTime: "6 min",
-      trending: true,
-      image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=600&fit=crop&crop=focalpoint"
-    },
-    {
-      id: 4,
-      title: "Global Markets React to Economic Policy",
-      summary: "Financial markets show significant movement following policy announcements...",
-      category: "Business",
-      readTime: "4 min",
-      trending: true,
-      image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop&crop=focalpoint"
-    }
-  ];
+  const navigate = useNavigate();
+  const { articles, isLoading } = useNews('general');
+
+  const handleArticleClick = (article: any) => {
+    const articleData = encodeURIComponent(JSON.stringify(article));
+    navigate(`/article?data=${articleData}`);
+  };
+
+  const formatTimeAgo = (publishedAt: string) => {
+    const now = new Date();
+    const published = new Date(publishedAt);
+    const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
+  };
+
+  const getImageUrl = (url: string | null) => {
+    if (!url) return '/placeholder.svg';
+    if (url.startsWith('//')) return `https:${url}`;
+    if (url.startsWith('/')) return '/placeholder.svg';
+    return url;
+  };
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-card/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-3">
+              <TrendingUp className="w-6 h-6 text-ura-green" />
+              <h2 className="text-3xl font-bold text-ura-white">Trending Now</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-card rounded-lg border border-border animate-pulse">
+                <div className="h-48 bg-muted rounded-t-lg" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-muted rounded" />
+                  <div className="h-3 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const trendingArticles = articles.slice(0, 4);
 
   return (
     <section className="py-16 bg-card/20">
@@ -53,37 +71,43 @@ const TrendingCarousel = () => {
             <TrendingUp className="w-6 h-6 text-ura-green" />
             <h2 className="text-3xl font-bold text-ura-white">Trending Now</h2>
           </div>
-          <button className="text-ura-green hover:text-ura-green-hover transition-colors">
+          <button 
+            onClick={() => navigate('/news')}
+            className="text-ura-green hover:text-ura-green-hover transition-colors"
+          >
             View All
           </button>
         </div>
 
         {/* Trending Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingNews.map((article) => (
+          {trendingArticles.map((article, index) => (
             <Card 
-              key={article.id} 
+              key={`${article.url}-${index}`}
               className="group bg-card border-border hover-lift cursor-pointer overflow-hidden"
+              onClick={() => handleArticleClick(article)}
             >
               <div className="relative">
                 <img
-                  src={article.image}
+                  src={getImageUrl(article.urlToImage)}
                   alt={article.title}
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
                 />
                 <div className="absolute top-3 left-3">
                   <Badge variant="secondary" className="bg-ura-green text-ura-black">
-                    {article.category}
+                    {article.source.name}
                   </Badge>
                 </div>
-                {article.trending && (
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-red-500 text-white">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      Hot
-                    </Badge>
-                  </div>
-                )}
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-red-500 text-white">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    Hot
+                  </Badge>
+                </div>
               </div>
               
               <CardContent className="p-4">
@@ -91,14 +115,14 @@ const TrendingCarousel = () => {
                   {article.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {article.summary}
+                  {article.description}
                 </p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
-                    <span>{article.readTime}</span>
+                    <span>5 min read</span>
                   </div>
-                  <span>2 hours ago</span>
+                  <span>{formatTimeAgo(article.publishedAt)}</span>
                 </div>
               </CardContent>
             </Card>

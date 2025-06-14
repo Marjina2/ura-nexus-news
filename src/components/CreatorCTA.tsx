@@ -3,13 +3,16 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Users, Zap, DollarSign, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CreatorCTA = () => {
+  const navigate = useNavigate();
+
   const benefits = [
     {
       icon: FileText,
       title: "Premium Content Library",
-      description: "Access thousands of AI-rewritten articles for your platform"
+      description: "Access thousands of AI-enhanced articles for your platform"
     },
     {
       icon: Zap,
@@ -41,7 +44,7 @@ const CreatorCTA = () => {
               </div>
               
               <h2 className="text-4xl lg:text-5xl font-bold text-ura-white mb-6">
-                License our content for 
+                License our premium content for 
                 <span className="gradient-text"> your platform</span>
               </h2>
               
@@ -71,6 +74,7 @@ const CreatorCTA = () => {
               <Button 
                 size="lg" 
                 className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                onClick={() => navigate('/pricing')}
               >
                 Start Using Content
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -79,6 +83,7 @@ const CreatorCTA = () => {
                 variant="outline" 
                 size="lg" 
                 className="border-ura-green text-ura-green hover:bg-ura-green hover:text-ura-black"
+                onClick={() => navigate('/pricing')}
               >
                 View Pricing Plans
               </Button>
