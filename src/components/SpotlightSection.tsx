@@ -1,10 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Zap, MapPin, Clock, ExternalLink, AlertTriangle, TrendingUp, Eye, RefreshCw } from 'lucide-react';
 
 interface SpotlightArticle {
@@ -31,6 +32,7 @@ const SpotlightSection = () => {
   const [liveUpdateCount, setLiveUpdateCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isUpdating, setIsUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
 
   // Update current time every minute
   useEffect(() => {
@@ -84,16 +86,39 @@ const SpotlightSection = () => {
 
   const handleUpdateSpotlight = async () => {
     setIsUpdating(true);
+    setUpdateProgress(0);
+    
     try {
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setUpdateProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + Math.random() * 20;
+        });
+      }, 500);
+
       const { data, error } = await supabase.functions.invoke('update-spotlight');
+      
+      clearInterval(progressInterval);
+      setUpdateProgress(100);
+      
       if (error) throw error;
       
       await refetch();
       console.log('Spotlight updated successfully:', data);
+      
+      // Keep progress at 100% for a moment before hiding
+      setTimeout(() => {
+        setIsUpdating(false);
+        setUpdateProgress(0);
+      }, 1000);
     } catch (error) {
       console.error('Error updating spotlight:', error);
-    } finally {
       setIsUpdating(false);
+      setUpdateProgress(0);
     }
   };
 
@@ -143,11 +168,45 @@ const SpotlightSection = () => {
       <section className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse flex gap-6">
-            <div className="w-80 h-48 bg-red-500/20 rounded-xl" />
+            <Skeleton className="w-80 h-48 bg-red-500/20 rounded-xl" />
             <div className="flex-1 space-y-4">
-              <div className="h-8 bg-red-500/20 rounded w-3/4" />
-              <div className="h-4 bg-red-500/20 rounded w-full" />
-              <div className="h-4 bg-red-500/20 rounded w-2/3" />
+              <Skeleton className="h-8 bg-red-500/20 rounded w-3/4" />
+              <Skeleton className="h-4 bg-red-500/20 rounded w-full" />
+              <Skeleton className="h-4 bg-red-500/20 rounded w-2/3" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUpdating) {
+    return (
+      <section className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
+        <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="relative mb-6">
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-red-500/30 mx-auto">
+                <Zap className="w-8 h-8 text-red-400 animate-pulse" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full animate-ping mx-auto" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-ura-white mb-4">
+              Generating Fresh Spotlight
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              AI is analyzing current events to bring you the most important news of the moment
+            </p>
+            
+            <div className="max-w-md mx-auto space-y-4">
+              <Progress value={updateProgress} className="h-3 bg-red-900/30" />
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Processing latest developments...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -307,16 +366,6 @@ const SpotlightSection = () => {
               Read Full Coverage
               <ExternalLink className="w-4 h-4 ml-2" />
             </Button>
-          </div>
-        </div>
-
-        {/* Auto-refresh indicator */}
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center space-x-2 bg-card/20 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <p className="text-sm text-muted-foreground">
-              AI-powered spotlight • Updates with current major news
-            </p>
           </div>
         </div>
       </div>
