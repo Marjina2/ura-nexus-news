@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -33,8 +32,8 @@ const News = () => {
     goToPage,
     goToNextPage,
     goToPreviousPage,
-    fetchNewArticles
-  } = useAutoNewsFetcher();
+    fetchNewArticles,
+  } = useAutoNewsFetcher(selectedCategory);
 
   const handleBack = () => {
     navigate('/');

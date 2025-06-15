@@ -1,13 +1,18 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AccountSettings = () => {
+  const { user } = useAuth();
+
   return (
-    <div className="min-h-screen bg-ura-black flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-ura-black flex flex-col items-center justify-start pt-24 px-4">
       <h1 className="text-3xl md:text-5xl font-bold mb-4 text-ura-green">Account Settings</h1>
       <p className="text-lg text-ura-white mb-8">
-        Manage your account details and preferences here.
+        {user
+          ? <>Your email: <span className="font-mono text-ura-green">{user.email}</span></>
+          : <>Please log in to view or modify your account settings.</>}
       </p>
       <Link
         to="/"

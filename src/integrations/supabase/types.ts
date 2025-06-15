@@ -135,6 +135,33 @@ export type Database = {
         }
         Relationships: []
       }
+      gnews_api_keys: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          key_name: string | null
+          last_used: string | null
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name?: string | null
+          last_used?: string | null
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name?: string | null
+          last_used?: string | null
+        }
+        Relationships: []
+      }
       news_articles: {
         Row: {
           created_at: string

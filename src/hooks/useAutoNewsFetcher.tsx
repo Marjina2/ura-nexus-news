@@ -10,32 +10,50 @@ interface PaginatedArticlesResult {
   hasMore: boolean;
 }
 
-export const useAutoNewsFetcher = () => {
+export const useAutoNewsFetcher = (selectedCategory: string = 'all') => {
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const articlesPerPage = 10;
+  const [lastCategory, setLastCategory] = useState(selectedCategory);
 
-  // Fetch articles with pagination
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['paginated-news', currentPage],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['paginated-news', currentPage, selectedCategory],
     queryFn: async (): Promise<PaginatedArticlesResult> => {
+      if (selectedCategory !== lastCategory) setCurrentPage(1);
+      // Backend now fetches per category every time, but we filter client side as well
       const offset = (currentPage - 1) * articlesPerPage;
-      
-      const { data, error, count } = await supabase
+
+      let builder = supabase
         .from('news_articles')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(offset, offset + articlesPerPage - 1);
+        .order('created_at', { ascending: false });
+
+      if (selectedCategory && selectedCategory !== 'all') {
+        builder = builder.eq('category', selectedCategory);
+      }
+
+      const { data, error, count } = await builder.range(offset, offset + articlesPerPage - 1);
 
       if (error) throw error;
-      
+
+      // Deduplicate by source_url
+      const uniqueArticles: any[] = [];
+      const seen = new Set();
+      (data || []).forEach((art) => {
+        const url = art.source_url || art.url;
+        if (url && !seen.has(url)) {
+          seen.add(url);
+          uniqueArticles.push(art);
+        }
+      });
+
       return {
-        articles: data || [],
+        articles: uniqueArticles,
         totalCount: count || 0,
-        hasMore: (count || 0) > offset + articlesPerPage
+        hasMore: (count || 0) > offset + articlesPerPage,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -43,24 +61,18 @@ export const useAutoNewsFetcher = () => {
   const fetchNewArticles = useCallback(async () => {
     try {
       console.log('Auto-fetching new articles...');
-      
       const { data, error } = await supabase.functions.invoke('auto-publish-gnews');
-      
+
       if (error) {
         console.error('Error auto-fetching articles:', error);
         return;
       }
 
       console.log('New articles fetched:', data);
-      
-      // Invalidate and refetch the current query to show new articles
       queryClient.invalidateQueries({ queryKey: ['paginated-news'] });
-      
-      // Reset to first page if not already there to show new articles
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      }
-      
+
+      if (currentPage !== 1) setCurrentPage(1);
+
       if (data?.saved > 0) {
         toast.success(`${data.saved} new articles loaded!`);
       }
@@ -69,32 +81,15 @@ export const useAutoNewsFetcher = () => {
     }
   }, [queryClient, currentPage]);
 
-  // Set up auto-fetch interval (20 minutes)
   useEffect(() => {
-    // Initial fetch on mount
     fetchNewArticles();
-    
-    // Set up interval for every 20 minutes
     const interval = setInterval(fetchNewArticles, 20 * 60 * 1000);
-    
     return () => clearInterval(interval);
   }, [fetchNewArticles]);
 
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const goToNextPage = () => {
-    if (data?.hasMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
+  const goToPage = (page: number) => setCurrentPage(page);
+  const goToNextPage = () => { if (data?.hasMore) setCurrentPage(prev => prev + 1); };
+  const goToPreviousPage = () => { if (currentPage > 1) setCurrentPage(prev => prev - 1); };
 
   return {
     articles: data?.articles || [],
@@ -107,6 +102,7 @@ export const useAutoNewsFetcher = () => {
     goToPage,
     goToNextPage,
     goToPreviousPage,
-    fetchNewArticles
+    fetchNewArticles,
+    refetch,
   };
 };

@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -17,162 +16,118 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const gnewsApiKey = Deno.env.get('GNEWS_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     const serpApiKey = Deno.env.get('SERP_API_KEY');
 
-    if (!gnewsApiKey || !geminiApiKey) {
-      throw new Error('API keys for GNews/Gemini are missing.');
-    }
+    if (!geminiApiKey) throw new Error('GEMINI_API_KEY missing');
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Fetch 8 India news + 2 global news with full content
-    const fetchArticles = async (q: string | null, max: number) => {
-      const baseUrl = `https://gnews.io/api/v4/top-headlines?token=${gnewsApiKey}&lang=en&max=${max}`;
-      const params = q ? `&q=${encodeURIComponent(q)}` : '';
-      const url = baseUrl + params;
-      const resp = await fetch(url);
-      const data = await resp.json();
-      if (!data.articles || data.articles.length === 0) throw new Error("No GNews articles found");
-      return data.articles;
-    };
+    // --- 1. Fetch all active API keys and select current by least recently used (LRU) ---
+    const { data: apiKeys, error: keysError } = await supabase
+      .from('gnews_api_keys')
+      .select('*')
+      .eq('is_active', true)
+      .order('last_used', { ascending: true });
 
-    // 8 articles about India
-    const indiaArticles = await fetchArticles("India", 8);
-    // 2 global
-    const globalArticles = await fetchArticles(null, 2);
+    if (keysError || !apiKeys || apiKeys.length === 0)
+      throw new Error('No GNews API keys configured');
 
-    const fullArticles = [...indiaArticles, ...globalArticles].slice(0, 10);
-
-    // 2. For each article: Get full content, Gemini rephrase & summary, SerpAPI image
-    const results = [];
-    for (const art of fullArticles) {
-      const { title, description, content, url, image, publishedAt } = art;
-      let rephrasedTitle = title;
-      let summary = description || '';
-      let fullContent = content || description || '';
-      let geminiSuccess = false;
-
-      // Try to get more content from the article URL if content is limited
-      if (fullContent && fullContent.length < 200 && fullContent.includes('[+')) {
+    // Helper to fetch using available API keys, rotates if error
+    async function fetchArticlesFromAnyKey(category, max) {
+      let lastError;
+      for (let i = 0; i < apiKeys.length; i++) {
+        const keyObj = apiKeys[i];
+        const key = keyObj.api_key;
+        let qParam = category && category !== 'all' ? `&topic=${encodeURIComponent(category)}` : '';
+        const url = `https://gnews.io/api/v4/top-headlines?token=${key}&lang=en&max=${max}${qParam}`;
         try {
-          // GNews API sometimes truncates content, but we can try to get more from the description
-          fullContent = description || content || 'Content not available.';
+          const resp = await fetch(url);
+          const data = await resp.json();
+          if (data?.articles && data.articles.length > 0) {
+            // Update key usage timestamp
+            await supabase.from('gnews_api_keys')
+              .update({ last_used: new Date().toISOString() })
+              .eq('id', keyObj.id);
+            return data.articles;
+          }
+          lastError = data?.errors || data?.message || 'Unknown empty articles error';
         } catch (e) {
-          console.log('Could not fetch extended content:', e);
+          lastError = e.message || e.toString();
         }
       }
+      throw new Error("All GNews APIs failed: " + lastError);
+    }
 
-      // Gemini for enhanced summary and content improvement
+    // --- 2. For each category, fetch 10 articles ---
+    const categories = [
+      "general", "business", "entertainment", "health", "science", "sports", "technology"
+    ];
+    let allArticles = [];
+    for (const cat of categories) {
+      let articles = [];
       try {
-        const geminiPrompt = `Please enhance and expand this news article content. Make it comprehensive and informative while maintaining accuracy. Keep the original facts but provide better structure and readability:
-
-Title: ${title}
-Original Content: ${fullContent}
-Description: ${description}
-
-Please provide a well-structured, detailed article (aim for 300-500 words) that expands on the key points while staying factual.`;
-
-        const geminiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: geminiPrompt }] }],
-            generationConfig: { temperature: 0.3, topK: 1, topP: 1, maxOutputTokens: 800 },
-          }),
-        });
-        const geminiData = await geminiResp.json();
-        if (geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-          const enhancedContent = geminiData.candidates[0].content.parts[0].text.trim();
-          fullContent = enhancedContent;
-          geminiSuccess = true;
-
-          // Also generate a better summary
-          const summaryPrompt = `Create a concise 80-word summary of this article:\n\n${enhancedContent}`;
-          const geminiSummaryResp = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: summaryPrompt }] }],
-                generationConfig: { temperature: 0.25, topK: 1, topP: 1, maxOutputTokens: 150 },
-              }),
-          });
-          const summaryData = await geminiSummaryResp.json();
-          if (summaryData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            summary = summaryData.candidates[0].content.parts[0].text.trim();
-          }
-
-          // Try a Gemini-rephrased title
-          const titlePrompt = `Rephrase this headline for a news site in less than 10 words:\n\n${title}`;
-          const geminiTitleResp = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: titlePrompt }] }],
-                generationConfig: { temperature: 0.25, topK: 1, topP: 1, maxOutputTokens: 25 },
-              }),
-          });
-          const gtitle = await geminiTitleResp.json();
-          if (gtitle?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            rephrasedTitle = gtitle.candidates[0].content.parts[0].text.trim();
-          }
-        }
+        articles = await fetchArticlesFromAnyKey(cat, 10);
       } catch (e) {
-        geminiSuccess = false;
-        console.log('Gemini enhancement failed:', e);
-        // Use original content if Gemini fails
+        console.log(`Error fetching ${cat}:`, e);
+      }
+      if (articles) {
+        // Attach category info
+        articles.forEach(a => allArticles.push({ ...a, category: cat }));
+      }
+    }
+
+    // --- 3. Deduplicate by source URL/title ---
+    const seenUrls = new Set();
+    const dedupedArticles = [];
+    for (const art of allArticles) {
+      const url = art.url || art.source_url;
+      if (!url || seenUrls.has(url)) continue;
+      seenUrls.add(url);
+
+      // Avoid very low-res/pixelated images
+      let image_url = art.image || art.image_url || null;
+      if (image_url && (image_url.includes("pixel") || image_url.includes("placeholder"))) {
+        image_url = null;
       }
 
-      // Use SerpAPI for best image if possible
-      let finalImage = image || null;
-      if (serpApiKey) {
-        try {
-          const serpUrl = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(title)} site:bbc.com OR site:cnn.com OR site:ndtv.com&tbm=nws&api_key=${serpApiKey}`;
-          const serpRes = await fetch(serpUrl);
-          const serpData = await serpRes.json();
-          const newsImg = serpData.news_results?.find(
-            (res: any) => res.thumbnail && res.thumbnail.startsWith('http')
-          )?.thumbnail;
-          if (newsImg) finalImage = newsImg;
-          if (!finalImage) {
-            const serpImageUrl = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(title)}&tbm=isch&api_key=${serpApiKey}&num=1`;
-            const serpImgRes = await fetch(serpImageUrl);
-            const serpImgData = await serpImgRes.json();
-            const img = serpImgData.images_results?.find((i: any) => i.original)?.original;
-            if (img) finalImage = img;
-          }
-        } catch (e) {
-          console.log('SERP image fetch failed:', e);
-        }
-      }
-      if (!finalImage) {
-        finalImage = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
+      // Prefer full content, fallback order
+      let full_content = art.content || art.full_content || art.description || '';
+      if (full_content.length < 100 && art.description?.length > full_content.length) {
+        full_content = art.description;
       }
 
-      // 3. Insert into news_articles with full content
-      const insertObj = {
-        original_title: title || "",
-        rephrased_title: rephrasedTitle,
-        summary,
-        full_content: fullContent, // Store the full/enhanced content
-        image_url: finalImage,
+      dedupedArticles.push({
+        original_title: art.title || "",
+        rephrased_title: null,
+        summary: art.description || '',
+        full_content,
+        image_url,
         source_url: url,
-        created_at: publishedAt || new Date().toISOString(),
-      };
+        category: art.category,
+        created_at: art.publishedAt || art.created_at || new Date().toISOString(),
+      });
+    }
 
-      const { error: insError } = await supabase
+    // --- 4. Insert into news_articles ---
+    let inserted = 0;
+    for (const insertObj of dedupedArticles) {
+      // Only insert if not present already (dedup by source_url)
+      const { data: exists, error: selectErr } = await supabase
         .from('news_articles')
-        .insert([insertObj]);
-      if (insError) throw insError;
-
-      results.push({ ...insertObj, geminiSuccess });
+        .select('id')
+        .eq('source_url', insertObj.source_url)
+        .maybeSingle();
+      if (!exists) {
+        const { error: insError } = await supabase
+          .from('news_articles')
+          .insert([insertObj]);
+        if (!insError) inserted++;
+      }
     }
 
     return new Response(
-      JSON.stringify({ ok: true, saved: results.length, articles: results }),
+      JSON.stringify({ ok: true, saved: inserted, articles_fetched: dedupedArticles.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
