@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -13,6 +14,7 @@ import { useAutoNewsFetcher } from '@/hooks/useAutoNewsFetcher';
 import { NewsArticleData } from '@/types/news';
 import { useAuth } from '@/contexts/AuthContext';
 import { RefreshCw } from 'lucide-react';
+import SpotlightSection from '@/components/SpotlightSection';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
@@ -73,9 +75,12 @@ const News = () => {
   return (
     <div className="min-h-screen bg-ura-black">
       <Header />
-      
+
       <main className="pt-32 pb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Spotlight Section at top */}
+          <SpotlightSection />
+
           <NewsHeader onBack={handleBack} />
           
           <div className="flex justify-between items-center mb-6">
