@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,19 +18,12 @@ export const useNewsOperations = () => {
       }
       
       console.log('Function response:', data);
-      toast({
-        title: "News Generated!",
-        description: `Successfully generated ${data?.saved || 0} new articles`,
-      });
+      toast.success(`Successfully generated ${data?.saved || 0} new articles`);
       
       return data;
     } catch (error) {
       console.error('Error generating news:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate news. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to generate news. Please try again.");
       throw error;
     } finally {
       setIsGenerating(false);
