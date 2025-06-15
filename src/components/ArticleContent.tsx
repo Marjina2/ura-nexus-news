@@ -32,17 +32,42 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content }) => {
   };
 
   const formatContent = (content: string) => {
-    if (!content) {
+    if (!content || content.trim().length === 0) {
       return <p className="text-muted-foreground">This article content is not available at the moment.</p>;
     }
     
+    // Clean up common GNews content issues
+    let cleanedContent = content
+      .replace(/\[+\d+ chars\]+/g, '') // Remove [+123 chars] indicators
+      .replace(/Read more\.\.\./g, '')
+      .replace(/Continue reading\.\.\./g, '')
+      .trim();
+    
+    // If content is still too short, show a message
+    if (cleanedContent.length < 100) {
+      return (
+        <div>
+          <p className="text-muted-foreground mb-4">{cleanedContent}</p>
+          <p className="text-sm text-muted-foreground italic">
+            Full article content will be available soon. Our system is continuously improving article retrieval.
+          </p>
+        </div>
+      );
+    }
+    
     // Split content into paragraphs and process each one
-    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    const paragraphs = cleanedContent.split(/\n\s*\n|\r\n\s*\r\n/).filter(p => p.trim());
+    
+    if (paragraphs.length === 0) {
+      paragraphs.push(cleanedContent);
+    }
     
     return paragraphs.map((paragraph, index) => {
       const trimmedParagraph = paragraph.trim();
       
-      // Check if this looks like a heading (short line, often at start or after empty line)
+      if (!trimmedParagraph) return null;
+      
+      // Check if this looks like a heading
       if (trimmedParagraph.length < 100 && (
         trimmedParagraph.endsWith(':') || 
         trimmedParagraph.match(/^[A-Z][^.!?]*$/) ||
@@ -72,7 +97,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content }) => {
           dangerouslySetInnerHTML={{ __html: highlightedParagraph }}
         />
       );
-    });
+    }).filter(Boolean);
   };
 
   const processQuotes = (content: string) => {
@@ -80,7 +105,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content }) => {
     return content.replace(/"([^"]+)"/g, '<blockquote class="border-l-4 border-ura-green pl-4 my-4 italic text-ura-white bg-ura-green/5 py-2 rounded-r">"$1"</blockquote>');
   };
 
-  const processedContent = processQuotes(content);
+  const processedContent = processQuotes(content || '');
 
   return (
     <div className="prose prose-invert max-w-none">

@@ -38,8 +38,24 @@ const Article = () => {
     if (articleData) {
       try {
         const parsedArticle = JSON.parse(decodeURIComponent(articleData));
-        setArticle(parsedArticle);
-        saveArticleAndIncrementViews(parsedArticle);
+        
+        // Ensure we have full content available
+        const enhancedArticle = {
+          ...parsedArticle,
+          // Map the database fields to the expected format
+          full_content: parsedArticle.full_content || parsedArticle.content,
+          content: parsedArticle.full_content || parsedArticle.content || parsedArticle.summary,
+          title: parsedArticle.rephrased_title || parsedArticle.original_title || parsedArticle.title,
+          original_title: parsedArticle.original_title || parsedArticle.title,
+          summary: parsedArticle.summary || parsedArticle.description,
+          source_url: parsedArticle.source_url || parsedArticle.url,
+          image_url: parsedArticle.image_url || parsedArticle.urlToImage,
+          publishedAt: parsedArticle.created_at || parsedArticle.publishedAt
+        };
+        
+        console.log('Enhanced article data:', enhancedArticle);
+        setArticle(enhancedArticle);
+        saveArticleAndIncrementViews(enhancedArticle);
         setIsLoading(false);
         setError(null);
       } catch (error) {
