@@ -38,6 +38,7 @@ const News: React.FC = () => {
   const { data: articles = [], isLoading, error, refetch } = useQuery({
     queryKey: ['ai-articles', selectedCategory],
     queryFn: async () => {
+      console.log('Fetching articles for category:', selectedCategory);
       let query = supabase
         .from('ai_generated_articles')
         .select('*')
@@ -49,7 +50,12 @@ const News: React.FC = () => {
 
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching articles:', error);
+        throw error;
+      }
+      
+      console.log('Fetched articles:', data?.length);
       return data || [];
     },
   });
@@ -57,18 +63,29 @@ const News: React.FC = () => {
   const generateArticles = async () => {
     setIsGenerating(true);
     try {
+      console.log('Starting article generation...');
+      const category = selectedCategory === 'all' ? 'general' : selectedCategory;
+      
       const { data, error } = await supabase.functions.invoke('generate-ai-news', {
         body: { 
-          category: selectedCategory === 'all' ? 'general' : selectedCategory,
-          count: 5 
+          category: category,
+          count: 10 
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
 
-      toast.success(`Generated ${data?.articles?.length || 0} new articles!`);
-      queryClient.invalidateQueries({ queryKey: ['ai-articles'] });
-      refetch();
+      console.log('Generation response:', data);
+      const articlesCount = data?.articles?.length || 0;
+      toast.success(`Generated ${articlesCount} new articles!`);
+      
+      // Invalidate and refetch articles
+      await queryClient.invalidateQueries({ queryKey: ['ai-articles'] });
+      await refetch();
+      
     } catch (error) {
       console.error('Error generating articles:', error);
       toast.error('Failed to generate articles. Please try again.');
@@ -169,8 +186,9 @@ const News: React.FC = () => {
                 variant="outline"
                 size="sm"
                 className="border-ura-green/40 hover:border-ura-green text-ura-white"
+                disabled={isLoading}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button
@@ -212,15 +230,24 @@ const News: React.FC = () => {
           {/* Empty State */}
           {!isLoading && !error && articles.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No articles found for this category.</p>
-              <Button
-                onClick={generateArticles}
-                disabled={isGenerating}
-                className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate Some Articles
-              </Button>
+              <div className="max-w-md mx-auto">
+                <div className="mb-6">
+                  <Sparkles className="w-16 h-16 mx-auto text-ura-green mb-4" />
+                  <h3 className="text-xl font-semibold text-ura-white mb-2">No Articles Yet</h3>
+                  <p className="text-muted-foreground">
+                    No articles found for this category. Generate some fresh AI articles to get started!
+                  </p>
+                </div>
+                <Button
+                  onClick={generateArticles}
+                  disabled={isGenerating}
+                  className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                  size="lg"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {isGenerating ? 'Generating Articles...' : 'Generate 10 Articles'}
+                </Button>
+              </div>
             </div>
           )}
 
@@ -248,6 +275,10 @@ const News: React.FC = () => {
                           src={article.image_url}
                           alt={article.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            // Fallback to a placeholder if image fails to load
+                            e.currentTarget.src = `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&h=600&fit=crop&auto=format`;
+                          }}
                         />
                         <div className="absolute top-3 left-3">
                           <Badge variant="secondary" className="bg-ura-green/90 text-ura-black font-medium">
