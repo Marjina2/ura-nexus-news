@@ -168,13 +168,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUpWithEmail = async (email: string, password: string, username: string, country: string, fullName: string) => {
     try {
       console.log('Starting email sign up process...');
-      const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             username,
             country,
@@ -185,12 +184,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Sign up response:', { data, error });
       
-      if (!error && data.user && !data.user.email_confirmed_at) {
-        console.log('Sign up successful, user should receive verification email');
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account. You must verify within 24 hours.",
-        });
+      if (!error && data.user) {
+        if (!data.user.email_confirmed_at) {
+          console.log('User created, verification email should be sent');
+          toast({
+            title: "Account created!",
+            description: "Please check your email to verify your account. You must verify within 24 hours.",
+          });
+        } else {
+          console.log('User created and already confirmed');
+          toast({
+            title: "Account created and verified!",
+            description: "Welcome to URA! You can now access all features.",
+          });
+        }
       }
       
       return { error };

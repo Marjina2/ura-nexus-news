@@ -20,6 +20,7 @@ import AuthCallback from '@/pages/AuthCallback';
 import ProfileCompletion from '@/components/auth/ProfileCompletion';
 import News from '@/pages/News';
 import SpotlightDetailPage from '@/pages/SpotlightDetailPage';
+import EmailVerificationGuard from '@/components/auth/EmailVerificationGuard';
 import { useAuth } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-ura-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ura-green mx-auto mb-4"></div>
         <div className="text-ura-white">Loading...</div>
       </div>
     );
@@ -52,7 +54,11 @@ function AppContent() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/article" element={<Article />} />
-          <Route path="/news" element={<News />} />
+          <Route path="/news" element={
+            <EmailVerificationGuard>
+              <News />
+            </EmailVerificationGuard>
+          } />
           <Route path="/categories" element={<Categories />} />
           <Route path="/ai-picks" element={<AIPicks />} />
           <Route path="/search" element={<Search />} />
