@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +40,7 @@ export const useArticleOperations = () => {
         .upsert({
           title: cleanTitle(articleData.original_title || articleData.title || ''),
           description: articleData.summary || articleData.description || '',
-          content: articleData.content || getComprehensiveArticleContent(articleData),
+          content: articleData.full_content || articleData.content || getComprehensiveArticleContent(articleData),
           url: articleData.source_url || articleData.url || '',
           image_url: articleData.image_url || articleData.urlToImage || '',
           published_at: articleData.created_at || articleData.publishedAt || articleData.published_at || new Date().toISOString(),

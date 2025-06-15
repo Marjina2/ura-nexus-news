@@ -138,6 +138,7 @@ export type Database = {
       news_articles: {
         Row: {
           created_at: string
+          full_content: string | null
           id: string
           image_url: string | null
           original_title: string
@@ -147,6 +148,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          full_content?: string | null
           id?: string
           image_url?: string | null
           original_title: string
@@ -156,6 +158,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          full_content?: string | null
           id?: string
           image_url?: string | null
           original_title?: string
