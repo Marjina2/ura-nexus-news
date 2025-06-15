@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Mail } from 'lucide-react';
+import { CheckCircle, Mail, Info } from 'lucide-react';
 
 const countries = [
   'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 
@@ -32,7 +33,7 @@ const ProfileCompletion = () => {
     try {
       const { error } = await updateProfile({
         full_name: formData.fullName,
-        phone_number: formData.phoneNumber,
+        phone_number: formData.phoneNumber || null,
         country: formData.country,
       });
 
@@ -79,7 +80,7 @@ const ProfileCompletion = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number *</Label>
+              <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
               <Input
                 id="phoneNumber"
                 type="tel"
@@ -87,7 +88,6 @@ const ProfileCompletion = () => {
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 className="bg-background border-border"
                 placeholder="+1234567890"
-                required
               />
             </div>
 

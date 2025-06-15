@@ -10,6 +10,7 @@ import { Github } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import EmailValidator from './EmailValidator';
+import PasswordStrength from './PasswordStrength';
 
 interface SignUpFormProps {
   onToggleMode: () => void;
@@ -222,6 +223,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/
               className="bg-background/50 border-border/50 rounded-xl focus:border-ura-green transition-all duration-200"
               placeholder="••••••••"
             />
+            <PasswordStrength password={password} />
           </div>
           
           <div className="space-y-2">
