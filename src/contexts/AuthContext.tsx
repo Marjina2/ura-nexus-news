@@ -14,7 +14,6 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUpWithEmail: (email: string, password: string, username: string, country: string, fullName: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGitHub: () => Promise<{ error: any }>;
   updateProfile: (updates: any) => Promise<{ error: any }>;
 }
 
@@ -186,8 +185,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Sign up response:', { data, error });
       
-      if (!error) {
+      if (!error && data.user && !data.user.email_confirmed_at) {
         console.log('Sign up successful, user should receive verification email');
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account. You must verify within 24 hours.",
+        });
       }
       
       return { error };
@@ -208,21 +211,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error };
     } catch (error) {
       console.error('Unexpected error during Google sign in:', error);
-      return { error };
-    }
-  };
-
-  const signInWithGitHub = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      return { error };
-    } catch (error) {
-      console.error('Unexpected error during GitHub sign in:', error);
       return { error };
     }
   };
@@ -266,7 +254,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
-    signInWithGitHub,
     updateProfile,
   };
 

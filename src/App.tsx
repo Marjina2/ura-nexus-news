@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from '@/pages/Index';
@@ -49,7 +50,7 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/account" element={<AccountSettings />} />
+          <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/article" element={<Article />} />
           <Route path="/news" element={<News />} />
           <Route path="/categories" element={<Categories />} />

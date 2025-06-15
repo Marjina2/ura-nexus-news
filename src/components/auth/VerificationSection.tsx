@@ -8,11 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import VerificationBadge from './VerificationBadge';
-import { Mail, Phone, Shield, AlertTriangle } from 'lucide-react';
+import { Mail, Shield, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const VerificationSection = () => {
   const { user, profile, updateProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
 
@@ -21,12 +23,10 @@ const VerificationSection = () => {
     
     setLoading(true);
     try {
-      // Generate verification token and update profile
-      const token = await supabase.rpc('generate_verification_token');
-      
-      const { error } = await updateProfile({
-        verification_token: token.data,
-        verification_sent_at: new Date().toISOString(),
+      // Resend verification email
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email
       });
 
       if (error) throw error;
@@ -89,7 +89,7 @@ const VerificationSection = () => {
     }
   };
 
-  const isProfileComplete = profile?.full_name && profile?.phone_number && profile?.country;
+  const isProfileComplete = profile?.full_name && profile?.country;
 
   return (
     <Card className="bg-card border-border">
@@ -115,7 +115,7 @@ const VerificationSection = () => {
               <span className="font-semibold">Profile Incomplete</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Please complete your profile information (full name, phone number, and country) before verification.
+              Please complete your profile information (full name and country) before verification.
             </p>
           </div>
         )}

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Mail, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface EmailVerificationGuardProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface EmailVerificationGuardProps {
 
 const EmailVerificationGuard: React.FC<EmailVerificationGuardProps> = ({ children }) => {
   const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -75,7 +77,7 @@ const EmailVerificationGuard: React.FC<EmailVerificationGuardProps> = ({ childre
             </div>
 
             <Button 
-              onClick={() => window.location.href = '/account-settings'}
+              onClick={() => navigate('/account-settings')}
               className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover"
             >
               Go to Account Settings
