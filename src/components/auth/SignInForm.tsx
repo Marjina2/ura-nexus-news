@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SignInFormProps {
   onToggleMode: () => void;
+  redirectPath?: string;
 }
 
-const SignInForm: React.FC<SignInFormProps> = ({ onToggleMode }) => {
+const SignInForm: React.FC<SignInFormProps> = ({ onToggleMode, redirectPath = '/' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

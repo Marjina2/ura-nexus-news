@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SignUpFormProps {
   onToggleMode: () => void;
+  redirectPath?: string;
 }
 
 const countries = [
@@ -20,7 +20,7 @@ const countries = [
   'Japan', 'South Korea', 'Singapore', 'India', 'Brazil', 'Mexico', 'Argentina', 'Other'
 ];
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
