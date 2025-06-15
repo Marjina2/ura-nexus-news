@@ -1,3 +1,4 @@
+
 project_id = "csjwgsqnsarvmdvmfwig"
 
 [functions.update-spotlight-news]
@@ -5,3 +6,7 @@ verify_jwt = true
 
 [functions.auto-publish-news]
 verify_jwt = false
+
+[functions.auto-publish-gnews]
+verify_jwt = false
+
