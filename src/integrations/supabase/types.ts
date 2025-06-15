@@ -135,6 +135,36 @@ export type Database = {
         }
         Relationships: []
       }
+      news_articles: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          original_title: string
+          rephrased_title: string | null
+          source_url: string | null
+          summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          original_title: string
+          rephrased_title?: string | null
+          source_url?: string | null
+          summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          original_title?: string
+          rephrased_title?: string | null
+          source_url?: string | null
+          summary?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
