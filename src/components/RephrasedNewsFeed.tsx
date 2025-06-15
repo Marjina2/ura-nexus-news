@@ -1,11 +1,21 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { useRephrasedNews } from "@/hooks/useRephrasedNews";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
+const FILTERS = [
+  { label: "Latest", value: "latest" },
+  { label: "Controversial (India)", value: "controversial" },
+];
+
 const RephrasedNewsFeed: React.FC = () => {
-  const { articles, isLoading, error, hasMore, loadMore, isFetching } = useRephrasedNews();
+  const [filter, setFilter] = useState<"latest" | "controversial">("latest");
+  const { articles, isLoading, error, hasMore, loadMore, isFetching, setPage } = useRephrasedNews(filter);
+
+  React.useEffect(() => {
+    setPage(1);
+    // eslint-disable-next-line
+  }, [filter]);
 
   if (isLoading) {
     return (
@@ -34,14 +44,30 @@ const RephrasedNewsFeed: React.FC = () => {
 
   return (
     <div className="mb-12">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
-          <Sparkles /> AI-Rephrased Fresh News
-        </h2>
-        <div className="max-w-2xl text-muted-foreground mb-4">
-          Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality, fully automated every 15 minutes.
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
+            <Sparkles /> AI-Rephrased Fresh News
+          </h2>
+          <div className="max-w-2xl text-muted-foreground mb-4">
+            Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality, fully automated every 15 minutes.
+          </div>
+        </div>
+        <div className="flex space-x-2">
+          {FILTERS.map((f) => (
+            <Button
+              key={f.value}
+              variant={filter === f.value ? "default" : "outline"}
+              onClick={() => setFilter(f.value as any)}
+              className={filter === f.value ? "bg-pulsee-green text-pulsee-black" : ""}
+              size="sm"
+            >
+              {f.label}
+            </Button>
+          ))}
         </div>
       </div>
+      {/* Article Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map((article) => (
           <div key={article.id} className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg">
