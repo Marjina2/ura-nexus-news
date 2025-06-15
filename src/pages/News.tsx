@@ -63,6 +63,11 @@ const News = () => {
             />
           </div>
 
+          {/* Rephrased News Section */}
+          <div className="scroll-slide-right">
+            <RephrasedNewsFeed />
+          </div>
+
           {/* Today's Spotlight Section */}
           <div className="scroll-slide-right">
             <SpotlightSection />
