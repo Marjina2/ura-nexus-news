@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -73,6 +72,26 @@ const News = () => {
     if (article.source_url) {
       window.open(article.source_url, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const handleReadArticle = (article: any) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // Navigate to article page with article data
+    const articleData = encodeURIComponent(JSON.stringify({
+      ...article,
+      title: article.rephrased_title || article.original_title,
+      description: article.summary,
+      content: article.summary,
+      url: article.source_url,
+      publishedAt: article.created_at,
+      image_url: article.image_url
+    }));
+    
+    navigate(`/article?data=${articleData}`);
   };
 
   const handleGenerateNews = async () => {
@@ -256,7 +275,6 @@ const News = () => {
                   <Card 
                     key={article.id} 
                     className="bg-card/60 border hover:shadow-lg hover:border-ura-green/30 h-full flex flex-col cursor-pointer transition-all duration-200 group"
-                    onClick={() => handleArticleClick(article)}
                   >
                     <div className="relative">
                       <img
@@ -297,15 +315,13 @@ const News = () => {
                       </p>
                       
                       <div className="mt-auto">
-                        {user ? (
-                          <span className="inline-flex items-center gap-1 text-ura-green font-semibold hover:underline">
-                            Read Source
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold">
-                            Login Required
-                          </span>
-                        )}
+                        <Button
+                          onClick={() => handleReadArticle(article)}
+                          className="w-full bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover"
+                          size="sm"
+                        >
+                          Read Article
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
