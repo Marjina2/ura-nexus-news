@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +71,6 @@ export const useNews = (category: string = 'general', country: string = 'in') =>
   const [page, setPage] = useState(1);
 
   const loadMore = async () => {
-    // Simulate loading more articles
     setPage(prev => prev + 1);
     if (page >= 3) {
       setHasMore(false);
@@ -157,7 +157,6 @@ export const useAIGeneratedArticles = (category: string, country: string) => {
     }
   };
 
-  // Fetch existing AI articles
   const { data: existingArticles } = useQuery({
     queryKey: ['ai-articles', category, country],
     queryFn: async () => {
@@ -182,7 +181,6 @@ export const useAIGeneratedArticles = (category: string, country: string) => {
 
       if (error) throw error;
       
-      // Explicitly type the mapped articles
       const mappedArticles = data?.map(article => {
         const mappedArticle: AIGeneratedArticle = {
           id: article.id,
@@ -194,7 +192,7 @@ export const useAIGeneratedArticles = (category: string, country: string) => {
           image_url: article.image_url || '',
           published_at: article.published_at || article.created_at,
           tags: article.tags || [],
-          is_active: true, // Default to active since we're only fetching records
+          is_active: true,
           created_at: article.created_at
         };
         return mappedArticle;

@@ -5,12 +5,13 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Clock, TrendingUp, Sparkles, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
+import { TrendingUp, Sparkles, ExternalLink, RefreshCw, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import LoginPromptModal from '@/components/auth/LoginPromptModal';
 import { useToast } from '@/hooks/use-toast';
+import { useSpotlightNews, useNewsArticles, useNewsOperations } from '@/hooks/useNewsOperations';
+import NewsHeader from '@/components/news/NewsHeader';
+import CategoryFilters from '@/components/news/CategoryFilters';
 
 const News = () => {
   const navigate = useNavigate();
@@ -18,50 +19,13 @@ const News = () => {
   const { toast } = useToast();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('general');
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Fetch spotlight news
-  const { data: spotlight, isLoading: spotlightLoading, error: spotlightError } = useQuery({
-    queryKey: ['spotlight-news'],
-    queryFn: async () => {
-      console.log('Fetching spotlight news...');
-      const today = new Date().toISOString().slice(0, 10);
-      const { data, error } = await supabase
-        .from('spotlight_news')
-        .select('*')
-        .eq('date', today)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Spotlight error:', error);
-        throw error;
-      }
-      console.log('Spotlight data:', data);
-      return data;
-    },
-  });
-
-  // Fetch rephrased news articles
-  const { data: articles = [], isLoading: articlesLoading, error: articlesError, refetch } = useQuery({
-    queryKey: ['news-articles', selectedCategory],
-    queryFn: async () => {
-      console.log('Fetching news articles...');
-      const { data, error } = await supabase
-        .from('news_articles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      if (error) {
-        console.error('Articles error:', error);
-        throw error;
-      }
-      console.log('Articles data:', data);
-      return data;
-    },
-  });
+  const { data: spotlight, isLoading: spotlightLoading, error: spotlightError } = useSpotlightNews();
+  const { data: articles = [], isLoading: articlesLoading, error: articlesError, refetch } = useNewsArticles(selectedCategory);
+  const { isGenerating, generateNews, formatDate } = useNewsOperations();
 
   const categories = ['general', 'business', 'technology', 'sports', 'health', 'entertainment'];
+  const isLoading = spotlightLoading || articlesLoading;
 
   const handleArticleClick = (article: any) => {
     if (!user) {
@@ -80,7 +44,6 @@ const News = () => {
       return;
     }
     
-    // Navigate to article page with article data
     const articleData = encodeURIComponent(JSON.stringify({
       ...article,
       title: article.rephrased_title || article.original_title,
@@ -95,87 +58,26 @@ const News = () => {
   };
 
   const handleGenerateNews = async () => {
-    setIsGenerating(true);
     try {
-      console.log('Calling auto-publish-gnews function...');
-      const { data, error } = await supabase.functions.invoke('auto-publish-gnews');
-      
-      if (error) {
-        console.error('Function error:', error);
-        throw error;
-      }
-      
-      console.log('Function response:', data);
-      toast({
-        title: "News Generated!",
-        description: `Successfully generated ${data?.saved || 0} new articles`,
-      });
-      
-      // Refetch the articles
+      await generateNews();
       refetch();
     } catch (error) {
-      console.error('Error generating news:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate news. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
+      // Error handling is done in useNewsOperations
     }
   };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const isLoading = spotlightLoading || articlesLoading;
 
   return (
     <div className="min-h-screen bg-pulsee-black">
       <Header />
       <main className="pt-32 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back to Home */}
-          <Button 
-            onClick={() => navigate('/')} 
-            variant="ghost" 
-            className="mb-6 text-pulsee-white hover:text-pulsee-green"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
+          <NewsHeader onBack={() => navigate('/')} />
 
-          {/* Page Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-5xl font-bold text-pulsee-white mb-4">
-              Latest Fresh News
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Stay updated with fresh, unique news powered by AI from trusted sources
-            </p>
-          </div>
-
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2 mb-8 justify-center">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? "bg-pulsee-green text-pulsee-black" : ""}
-                size="sm"
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </Button>
-            ))}
-          </div>
+          <CategoryFilters
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
 
           {/* Error States */}
           {(spotlightError || articlesError) && (
