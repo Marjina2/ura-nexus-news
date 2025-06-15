@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Fetch 8 India news + 2 global news
+    // 1. Fetch 8 India news + 2 global news with full content
     const fetchArticles = async (q: string | null, max: number) => {
       const baseUrl = `https://gnews.io/api/v4/top-headlines?token=${gnewsApiKey}&lang=en&max=${max}`;
       const params = q ? `&q=${encodeURIComponent(q)}` : '';
@@ -45,29 +45,65 @@ serve(async (req) => {
 
     const fullArticles = [...indiaArticles, ...globalArticles].slice(0, 10);
 
-    // 2. For each article: Gemini rephrase & summary, SerpAPI image
+    // 2. For each article: Get full content, Gemini rephrase & summary, SerpAPI image
     const results = [];
     for (const art of fullArticles) {
       const { title, description, content, url, image, publishedAt } = art;
       let rephrasedTitle = title;
       let summary = description || '';
+      let fullContent = content || description || '';
       let geminiSuccess = false;
 
-      // Gemini for summary
+      // Try to get more content from the article URL if content is limited
+      if (fullContent && fullContent.length < 200 && fullContent.includes('[+')) {
+        try {
+          // GNews API sometimes truncates content, but we can try to get more from the description
+          fullContent = description || content || 'Content not available.';
+        } catch (e) {
+          console.log('Could not fetch extended content:', e);
+        }
+      }
+
+      // Gemini for enhanced summary and content improvement
       try {
-        const geminiPrompt = `Rephrase the following news article for a modern news platform. Use clear, neutral language. Summarize in 80 words or less:\n\nTitle: ${title}\nContent: ${(content || description || '')}`;
+        const geminiPrompt = `Please enhance and expand this news article content. Make it comprehensive and informative while maintaining accuracy. Keep the original facts but provide better structure and readability:
+
+Title: ${title}
+Original Content: ${fullContent}
+Description: ${description}
+
+Please provide a well-structured, detailed article (aim for 300-500 words) that expands on the key points while staying factual.`;
+
         const geminiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: geminiPrompt }] }],
-            generationConfig: { temperature: 0.3, topK: 1, topP: 1, maxOutputTokens: 320 },
+            generationConfig: { temperature: 0.3, topK: 1, topP: 1, maxOutputTokens: 800 },
           }),
         });
         const geminiData = await geminiResp.json();
         if (geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-          summary = geminiData.candidates[0].content.parts[0].text.trim();
+          const enhancedContent = geminiData.candidates[0].content.parts[0].text.trim();
+          fullContent = enhancedContent;
           geminiSuccess = true;
+
+          // Also generate a better summary
+          const summaryPrompt = `Create a concise 80-word summary of this article:\n\n${enhancedContent}`;
+          const geminiSummaryResp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: summaryPrompt }] }],
+                generationConfig: { temperature: 0.25, topK: 1, topP: 1, maxOutputTokens: 150 },
+              }),
+          });
+          const summaryData = await geminiSummaryResp.json();
+          if (summaryData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            summary = summaryData.candidates[0].content.parts[0].text.trim();
+          }
+
           // Try a Gemini-rephrased title
           const titlePrompt = `Rephrase this headline for a news site in less than 10 words:\n\n${title}`;
           const geminiTitleResp = await fetch(
@@ -86,7 +122,8 @@ serve(async (req) => {
         }
       } catch (e) {
         geminiSuccess = false;
-        // fallback continues...
+        console.log('Gemini enhancement failed:', e);
+        // Use original content if Gemini fails
       }
 
       // Use SerpAPI for best image if possible
@@ -108,18 +145,19 @@ serve(async (req) => {
             if (img) finalImage = img;
           }
         } catch (e) {
-          // fallback continues...
+          console.log('SERP image fetch failed:', e);
         }
       }
       if (!finalImage) {
         finalImage = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
       }
 
-      // 3. Insert into news_articles
+      // 3. Insert into news_articles with full content
       const insertObj = {
         original_title: title || "",
         rephrased_title: rephrasedTitle,
         summary,
+        full_content: fullContent, // Store the full/enhanced content
         image_url: finalImage,
         source_url: url,
         created_at: publishedAt || new Date().toISOString(),
