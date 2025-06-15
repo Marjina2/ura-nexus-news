@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { NewsArticleData } from '@/types/news';
 
 export const useNewsData = (selectedCategory: string, enabled: boolean) => {
-  const fetchNewsArticles = async (): Promise<NewsArticleData[]> => {
+  const fetchNewsArticles = async () => {
     console.log('Fetching news articles...');
     
     const baseQuery = supabase
@@ -28,7 +28,7 @@ export const useNewsData = (selectedCategory: string, enabled: boolean) => {
     return (data || []) as NewsArticleData[];
   };
 
-  return useQuery<NewsArticleData[], Error>({
+  return useQuery({
     queryKey: ['news-articles', selectedCategory],
     queryFn: fetchNewsArticles,
     enabled,
