@@ -9,7 +9,7 @@ export const useNewsData = () => {
       const { data, error } = await supabase
         .from('news_articles')
         .select('*')
-        .order('published_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
