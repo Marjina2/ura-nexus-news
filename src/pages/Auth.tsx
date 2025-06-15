@@ -1,13 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { X } from 'lucide-react';
-import SignInForm from '@/components/auth/SignInForm';
-import SignUpForm from '@/components/auth/SignUpForm';
+import AuthForm from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -15,7 +13,6 @@ const Auth = () => {
   const redirectPath = searchParams.get('redirect') || '/';
 
   useEffect(() => {
-    // If user is already logged in, redirect them
     if (user && !loading) {
       navigate(redirectPath, { replace: true });
     }
@@ -57,22 +54,12 @@ const Auth = () => {
           {redirectPath && redirectPath !== '/' && (
             <div className="mb-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Please log in to continue reading news articles
+                Please log in to continue
               </p>
             </div>
           )}
           
-          {isSignUp ? (
-            <SignUpForm 
-              onToggleMode={() => setIsSignUp(false)}
-              redirectPath={redirectPath}
-            />
-          ) : (
-            <SignInForm 
-              onToggleMode={() => setIsSignUp(true)}
-              redirectPath={redirectPath}
-            />
-          )}
+          <AuthForm />
         </div>
       </div>
     </div>

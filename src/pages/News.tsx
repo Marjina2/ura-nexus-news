@@ -1,40 +1,25 @@
 
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsHeader from '@/components/news/NewsHeader';
 import CategoryFilters from '@/components/news/CategoryFilters';
 import NewsGrid from '@/components/news/NewsGrid';
-import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import EmailVerificationGuard from '@/components/auth/EmailVerificationGuard';
 import { useNewsData } from '@/hooks/useNewsData';
 import { NewsArticleData } from '@/types/news';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
 const News = () => {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const { data: newsArticles, isLoading, error } = useNewsData(selectedCategory, !!user);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-ura-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ura-green mx-auto mb-4"></div>
-        <div className="text-ura-white">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth?redirect=/news" replace />;
-  }
+  const { data: newsArticles, isLoading, error } = useNewsData();
 
   const handleBack = () => {
     navigate('/');
@@ -60,7 +45,7 @@ const News = () => {
   };
 
   return (
-    <EmailVerificationGuard>
+    <ProtectedRoute requireVerification={true}>
       <div className="min-h-screen bg-ura-black">
         <Header />
         
@@ -108,7 +93,7 @@ const News = () => {
 
         <Footer />
       </div>
-    </EmailVerificationGuard>
+    </ProtectedRoute>
   );
 };
 

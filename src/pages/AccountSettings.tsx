@@ -9,12 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, User, Phone, Globe, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Phone, Globe, Calendar, Mail, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import UserAvatar from '@/components/auth/UserAvatar';
-import VerificationSection from '@/components/auth/VerificationSection';
-import VerificationBadge from '@/components/auth/VerificationBadge';
 
 const countries = [
   'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 
@@ -23,7 +21,7 @@ const countries = [
 ];
 
 const AccountSettings = () => {
-  const { user, profile, loading, updateProfile, signOut } = useAuth();
+  const { user, profile, loading, updateProfile, signOut, resendVerification } = useAuth();
   const { toast } = useToast();
   const [updating, setUpdating] = useState(false);
   
@@ -63,11 +61,6 @@ const AccountSettings = () => {
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
     }
     
     setUpdating(false);
@@ -75,11 +68,9 @@ const AccountSettings = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
-    });
   };
+
+  const isVerified = user?.email_confirmed_at;
 
   return (
     <div className="min-h-screen bg-ura-black">
@@ -101,8 +92,34 @@ const AccountSettings = () => {
               <p className="text-muted-foreground">Manage your account preferences and profile information</p>
             </div>
 
-            {/* Account Verification Section */}
-            <VerificationSection />
+            {/* Email Verification Section */}
+            {!isVerified && (
+              <Card className="bg-card border-border border-yellow-500/50">
+                <CardHeader>
+                  <CardTitle className="text-ura-white flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-yellow-500" />
+                    Email Verification Required
+                  </CardTitle>
+                  <CardDescription>
+                    Please verify your email to access all features including news articles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Check your email for verification link
+                    </p>
+                    <Button 
+                      onClick={() => resendVerification()}
+                      variant="outline"
+                      className="text-yellow-500 border-yellow-500 hover:bg-yellow-500 hover:text-black"
+                    >
+                      Resend Email
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="grid gap-8 lg:grid-cols-2">
               {/* Profile Information */}
@@ -123,7 +140,11 @@ const AccountSettings = () => {
                           <h3 className="text-lg font-semibold text-ura-white">
                             {profile?.full_name || 'User'}
                           </h3>
-                          <VerificationBadge isVerified={profile?.is_verified} size="sm" />
+                          {isVerified ? (
+                            <Shield className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <Shield className="w-4 h-4 text-yellow-500" />
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">@{profile?.username}</p>
                         <p className="text-xs text-muted-foreground">{user?.email}</p>
@@ -132,10 +153,7 @@ const AccountSettings = () => {
 
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          Full Name
-                        </Label>
+                        <Label htmlFor="fullName">Full Name</Label>
                         <Input
                           id="fullName"
                           value={formData.fullName}
@@ -157,10 +175,7 @@ const AccountSettings = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phoneNumber" className="flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
-                          Phone Number
-                        </Label>
+                        <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
                         <Input
                           id="phoneNumber"
                           type="tel"
@@ -172,10 +187,7 @@ const AccountSettings = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="country" className="flex items-center gap-2">
-                          <Globe className="w-4 h-4" />
-                          Country
-                        </Label>
+                        <Label htmlFor="country">Country</Label>
                         <Select value={formData.country} onValueChange={(value) => setFormData({ ...formData, country: value })}>
                           <SelectTrigger className="bg-background border-border">
                             <SelectValue placeholder="Select your country" />
@@ -215,7 +227,7 @@ const AccountSettings = () => {
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-ura-white">Account Information</CardTitle>
-                  <CardDescription>View your account details and subscription status</CardDescription>
+                  <CardDescription>View your account details and status</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
@@ -225,8 +237,10 @@ const AccountSettings = () => {
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                      <span className="text-sm font-medium text-ura-white">Verification Status</span>
-                      <VerificationBadge isVerified={profile?.is_verified} size="sm" />
+                      <span className="text-sm font-medium text-ura-white">Email Status</span>
+                      <span className={`text-sm ${isVerified ? 'text-green-500' : 'text-yellow-500'}`}>
+                        {isVerified ? 'Verified' : 'Unverified'}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
