@@ -6,15 +6,16 @@ import { NewsArticleData } from '@/types/news';
 export const useNewsData = (selectedCategory: string, enabled: boolean) => {
   const fetchNewsArticles = async (): Promise<NewsArticleData[]> => {
     console.log('Fetching news articles...');
-    let query = supabase
+    
+    const baseQuery = supabase
       .from('news_articles')
       .select('id, original_title, rephrased_title, summary, image_url, source_url, created_at')
       .order('created_at', { ascending: false })
       .limit(20);
     
-    if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory);
-    }
+    const query = selectedCategory !== 'all' 
+      ? baseQuery.eq('category', selectedCategory)
+      : baseQuery;
     
     const { data, error } = await query;
     
@@ -22,11 +23,12 @@ export const useNewsData = (selectedCategory: string, enabled: boolean) => {
       console.error('Articles error:', error);
       throw error;
     }
+    
     console.log('Articles data:', data);
     return (data || []) as NewsArticleData[];
   };
 
-  return useQuery({
+  return useQuery<NewsArticleData[], Error>({
     queryKey: ['news-articles', selectedCategory],
     queryFn: fetchNewsArticles,
     enabled,
