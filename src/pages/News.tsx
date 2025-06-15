@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -9,105 +8,55 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, RefreshCw, Calendar, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface NewsArticle {
-  id: string;
-  title: string;
-  content: string;
-  summary: string;
-  category: string;
-  image_url: string;
-  created_at: string;
-  tags: string[];
-}
+import { useAutoNewsFetcher } from '@/hooks/useAutoNewsFetcher';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
 const News: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const articlesPerPage = 10;
 
-  const { data: articles = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['ai-articles', selectedCategory],
-    queryFn: async () => {
-      console.log('Fetching articles for category:', selectedCategory);
-      let query = supabase
-        .from('ai_generated_articles')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const {
+    articles,
+    totalCount,
+    hasMore,
+    currentPage,
+    articlesPerPage,
+    isLoading,
+    error,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    fetchNewArticles,
+    refetch,
+  } = useAutoNewsFetcher(selectedCategory);
 
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching articles:', error);
-        throw error;
-      }
-      
-      console.log('Fetched articles:', data?.length);
-      return data || [];
-    },
-  });
-
-  const generateArticles = async () => {
-    setIsGenerating(true);
-    try {
-      console.log('Starting article generation...');
-      const category = selectedCategory === 'all' ? 'general' : selectedCategory;
-      
-      const { data, error } = await supabase.functions.invoke('generate-ai-news', {
-        body: { 
-          category: category,
-          count: 10 
-        }
-      });
-
-      if (error) {
-        console.error('Function error:', error);
-        throw error;
-      }
-
-      console.log('Generation response:', data);
-      const articlesCount = data?.articles?.length || 0;
-      toast.success(`Generated ${articlesCount} new articles!`);
-      
-      // Invalidate and refetch articles
-      await queryClient.invalidateQueries({ queryKey: ['ai-articles'] });
-      await refetch();
-      
-    } catch (error) {
-      console.error('Error generating articles:', error);
-      toast.error('Failed to generate articles. Please try again.');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleArticleClick = (article: NewsArticle) => {
+  const handleArticleClick = (article: any) => {
     if (!user) {
       navigate('/auth?redirect=' + encodeURIComponent(`/article?data=${encodeURIComponent(JSON.stringify({
         ...article,
-        url: '#',
-        source: { name: 'URA News AI' }
+        url: article.source_url || '#',
+        source: { name: 'URA News' },
+        title: article.rephrased_title || article.original_title,
+        description: article.summary,
+        urlToImage: article.image_url,
+        publishedAt: article.created_at,
+        content: article.full_content || article.summary
       }))}`));
       return;
     }
     
     const articleData = encodeURIComponent(JSON.stringify({
       ...article,
-      url: '#',
-      source: { name: 'URA News AI' }
+      url: article.source_url || '#',
+      source: { name: 'URA News' },
+      title: article.rephrased_title || article.original_title,
+      description: article.summary,
+      urlToImage: article.image_url,
+      publishedAt: article.created_at,
+      content: article.full_content || article.summary
     }));
     navigate(`/article?data=${articleData}`);
   };
@@ -122,16 +71,7 @@ const News: React.FC = () => {
     });
   };
 
-  // Pagination
-  const totalPages = Math.ceil(articles.length / articlesPerPage);
-  const startIndex = (currentPage - 1) * articlesPerPage;
-  const endIndex = startIndex + articlesPerPage;
-  const currentArticles = articles.slice(startIndex, endIndex);
-
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const totalPages = Math.ceil(totalCount / articlesPerPage);
 
   return (
     <div className="min-h-screen bg-ura-black flex flex-col">
@@ -150,10 +90,10 @@ const News: React.FC = () => {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
-              AI Generated News
+              Latest Fresh News
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Fresh AI-generated news articles powered by advanced language models
+              Fresh news articles automatically updated every 20 minutes from trusted sources
             </p>
           </div>
 
@@ -163,10 +103,7 @@ const News: React.FC = () => {
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => {
-                  setSelectedCategory(category);
-                  setCurrentPage(1);
-                }}
+                onClick={() => setSelectedCategory(category)}
                 className={selectedCategory === category ? "bg-ura-green text-ura-black" : ""}
                 size="sm"
               >
@@ -175,10 +112,10 @@ const News: React.FC = () => {
             ))}
           </div>
 
-          {/* Stats and Generate Button */}
+          {/* Stats and Actions */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages || 1} • {articles.length} articles
+              Page {currentPage} of {totalPages || 1} • {totalCount} articles
             </div>
             <div className="flex gap-2">
               <Button
@@ -192,13 +129,13 @@ const News: React.FC = () => {
                 Refresh
               </Button>
               <Button
-                onClick={generateArticles}
-                disabled={isGenerating}
-                className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
+                onClick={fetchNewArticles}
+                variant="outline"
                 size="sm"
+                className="border-ura-green/40 hover:border-ura-green text-ura-white"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                {isGenerating ? 'Generating...' : 'Generate Articles'}
+                Fetch New
               </Button>
             </div>
           </div>
@@ -235,24 +172,23 @@ const News: React.FC = () => {
                   <Sparkles className="w-16 h-16 mx-auto text-ura-green mb-4" />
                   <h3 className="text-xl font-semibold text-ura-white mb-2">No Articles Yet</h3>
                   <p className="text-muted-foreground">
-                    No articles found for this category. Generate some fresh AI articles to get started!
+                    No articles found. New articles are fetched automatically every 20 minutes.
                   </p>
                 </div>
                 <Button
-                  onClick={generateArticles}
-                  disabled={isGenerating}
+                  onClick={fetchNewArticles}
                   className="bg-ura-green text-ura-black hover:bg-ura-green-hover"
                   size="lg"
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
-                  {isGenerating ? 'Generating Articles...' : 'Generate 10 Articles'}
+                  Fetch Articles Now
                 </Button>
               </div>
             </div>
           )}
 
           {/* Articles Grid */}
-          {!isLoading && !error && currentArticles.length > 0 && (
+          {!isLoading && !error && articles.length > 0 && (
             <>
               {!user && (
                 <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -263,7 +199,7 @@ const News: React.FC = () => {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {currentArticles.map((article) => (
+                {articles.map((article) => (
                   <Card 
                     key={article.id}
                     className="bg-card border-border overflow-hidden hover:border-ura-green/50 transition-all duration-200 cursor-pointer group"
@@ -273,24 +209,22 @@ const News: React.FC = () => {
                       <div className="relative h-48 overflow-hidden">
                         <img
                           src={article.image_url}
-                          alt={article.title}
+                          alt={article.rephrased_title || article.original_title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                           onError={(e) => {
-                            // Fallback to a placeholder if image fails to load
                             e.currentTarget.src = `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&h=600&fit=crop&auto=format`;
                           }}
                         />
                         <div className="absolute top-3 left-3">
                           <Badge variant="secondary" className="bg-ura-green/90 text-ura-black font-medium">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            AI
+                            Fresh
                           </Badge>
                         </div>
                       </div>
                     )}
                     <CardContent className="p-6">
                       <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
-                        {article.title}
+                        {article.rephrased_title || article.original_title}
                       </h3>
                       
                       {article.summary && (
@@ -304,10 +238,6 @@ const News: React.FC = () => {
                           <Calendar className="w-4 h-4" />
                           <span>{formatDate(article.created_at)}</span>
                         </div>
-                        
-                        <Badge variant="outline" className="text-xs">
-                          {article.category}
-                        </Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -318,7 +248,7 @@ const News: React.FC = () => {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2">
                   <Button
-                    onClick={() => goToPage(currentPage - 1)}
+                    onClick={goToPreviousPage}
                     disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
@@ -350,8 +280,8 @@ const News: React.FC = () => {
                   </div>
 
                   <Button
-                    onClick={() => goToPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    onClick={goToNextPage}
+                    disabled={!hasMore}
                     variant="outline"
                     size="sm"
                     className="border-ura-green/40 hover:border-ura-green text-ura-white disabled:opacity-50"
