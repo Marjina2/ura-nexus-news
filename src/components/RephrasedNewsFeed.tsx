@@ -1,8 +1,10 @@
 
 import React, { useState } from "react";
 import { useRephrasedNews } from "@/hooks/useRephrasedNews";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import LoginPromptModal from "@/components/auth/LoginPromptModal";
 
 const FILTERS = [
   { label: "Latest", value: "latest" },
@@ -11,12 +13,26 @@ const FILTERS = [
 
 const RephrasedNewsFeed: React.FC = () => {
   const [filter, setFilter] = useState<"latest" | "controversial">("latest");
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { articles, isLoading, error, isFetching, setPage } = useRephrasedNews(filter);
+  const { user } = useAuth();
 
   React.useEffect(() => {
     setPage(1);
     // eslint-disable-next-line
   }, [filter]);
+
+  const handleArticleClick = (article: any) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // If user is authenticated, open the article
+    if (article.source_url) {
+      window.open(article.source_url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -30,7 +46,7 @@ const RephrasedNewsFeed: React.FC = () => {
   if (error) {
     return (
       <div className="py-8 text-center text-red-500">
-        Failed to load AI-rephrased news.
+        Failed to load AI-rephrased news. Please try again later.
       </div>
     );
   }
@@ -44,59 +60,93 @@ const RephrasedNewsFeed: React.FC = () => {
   }
 
   return (
-    <div className="mb-12">
-      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
-            <Sparkles /> AI-Rephrased Fresh News
-          </h2>
-          <div className="max-w-2xl text-muted-foreground mb-4">
-            Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality.
+    <>
+      <div className="mb-12">
+        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
+              <Sparkles /> AI-Rephrased Fresh News
+            </h2>
+            <div className="max-w-2xl text-muted-foreground mb-4">
+              Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality.
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            {FILTERS.map((f) => (
+              <Button
+                key={f.value}
+                variant={filter === f.value ? "default" : "outline"}
+                onClick={() => setFilter(f.value as any)}
+                className={filter === f.value ? "bg-pulsee-green text-pulsee-black" : ""}
+                size="sm"
+              >
+                {f.label}
+              </Button>
+            ))}
           </div>
         </div>
-        <div className="flex space-x-2">
-          {FILTERS.map((f) => (
-            <Button
-              key={f.value}
-              variant={filter === f.value ? "default" : "outline"}
-              onClick={() => setFilter(f.value as any)}
-              className={filter === f.value ? "bg-pulsee-green text-pulsee-black" : ""}
-              size="sm"
+        
+        {/* Article Grid with Images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {articles.slice(0, 10).map((article) => (
+            <div 
+              key={article.id} 
+              className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg hover:border-ura-green/30 h-full flex flex-col cursor-pointer transition-all duration-200"
+              onClick={() => handleArticleClick(article)}
             >
-              {f.label}
-            </Button>
+              <div className="relative">
+                <img
+                  src={article.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"}
+                  alt={article.rephrased_title || article.original_title}
+                  className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
+                  }}
+                />
+                {!user && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="bg-ura-green text-ura-black px-3 py-1 rounded-full text-sm font-semibold">
+                      Login to Read
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-5 flex flex-col h-full">
+                <div className="mb-2 text-xs text-muted-foreground">
+                  {new Date(article.created_at).toLocaleString("en-IN", { 
+                    dateStyle: "medium", 
+                    timeStyle: "short" 
+                  })}
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-pulsee-white">
+                  {article.rephrased_title || article.original_title}
+                </h3>
+                <p className="text-sm mb-4 text-muted-foreground line-clamp-3">
+                  {article.summary}
+                </p>
+                <div className="mt-auto">
+                  {user ? (
+                    <span className="inline-flex items-center gap-1 text-ura-green font-semibold hover:underline">
+                      Read Source
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold">
+                      Login Required
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
-      {/* Article Grid with Images */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {articles.slice(0, 10).map((article) => (
-          <div key={article.id} className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg h-full flex flex-col">
-            <img
-              src={article.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"}
-              alt={article.rephrased_title || article.original_title}
-              className="w-full h-48 object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
-              }}
-            />
-            <div className="p-5 flex flex-col h-full">
-              <div className="mb-2 text-xs text-muted-foreground">{new Date(article.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
-              <h3 className="text-lg font-bold mb-2 text-pulsee-white">{article.rephrased_title || article.original_title}</h3>
-              <p className="text-sm mb-4 text-muted-foreground line-clamp-3">{article.summary}</p>
-              <a
-                href={article.source_url ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-auto inline-flex items-center gap-1 text-ura-green font-semibold hover:underline"
-              >
-                Read Source
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+
+      <LoginPromptModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        redirectPath="/news"
+      />
+    </>
   );
 };
 

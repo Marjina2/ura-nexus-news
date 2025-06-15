@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { X } from 'lucide-react';
 import SignInForm from '@/components/auth/SignInForm';
 import SignUpForm from '@/components/auth/SignUpForm';
@@ -8,8 +8,18 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  
+  const redirectPath = searchParams.get('redirect') || '/';
+
+  useEffect(() => {
+    // If user is already logged in, redirect them
+    if (user && !loading) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, loading, navigate, redirectPath]);
 
   if (loading) {
     return (
@@ -21,7 +31,7 @@ const Auth = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return (
@@ -36,7 +46,7 @@ const Auth = () => {
 
       {/* Exit button */}
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate(redirectPath)}
         className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-card/20 backdrop-blur-sm border border-border/30 hover:bg-card/40 transition-all duration-200 flex items-center justify-center group"
       >
         <X className="w-5 h-5 text-muted-foreground group-hover:text-ura-white transition-colors" />
@@ -44,10 +54,24 @@ const Auth = () => {
 
       <div className="w-full max-w-md relative z-10">
         <div className="animate-fade-in">
+          {redirectPath && redirectPath !== '/' && (
+            <div className="mb-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Please log in to continue reading news articles
+              </p>
+            </div>
+          )}
+          
           {isSignUp ? (
-            <SignUpForm onToggleMode={() => setIsSignUp(false)} />
+            <SignUpForm 
+              onToggleMode={() => setIsSignUp(false)}
+              redirectPath={redirectPath}
+            />
           ) : (
-            <SignInForm onToggleMode={() => setIsSignUp(true)} />
+            <SignInForm 
+              onToggleMode={() => setIsSignUp(true)}
+              redirectPath={redirectPath}
+            />
           )}
         </div>
       </div>
