@@ -13,7 +13,7 @@ export interface RephrasedNewsArticle {
   created_at: string;
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export function useRephrasedNews(type: "latest" | "controversial" = "latest") {
   const [page, setPage] = useState(1);

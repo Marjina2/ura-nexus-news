@@ -68,10 +68,18 @@ const RephrasedNewsFeed: React.FC = () => {
           ))}
         </div>
       </div>
-      {/* Article Grid - No Images */}
+      {/* Article Grid with Images */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {articles.slice(0, 5).map((article) => (
+        {articles.slice(0, 10).map((article) => (
           <div key={article.id} className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg h-full flex flex-col">
+            <img
+              src={article.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"}
+              alt={article.rephrased_title || article.original_title}
+              className="w-full h-48 object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
+              }}
+            />
             <div className="p-5 flex flex-col h-full">
               <div className="mb-2 text-xs text-muted-foreground">{new Date(article.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
               <h3 className="text-lg font-bold mb-2 text-pulsee-white">{article.rephrased_title || article.original_title}</h3>
