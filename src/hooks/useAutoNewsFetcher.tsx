@@ -4,15 +4,21 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface PaginatedArticlesResult {
+  articles: any[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 export const useAutoNewsFetcher = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const articlesPerPage = 10;
 
   // Fetch articles with pagination
-  const { data: articles = [], isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['paginated-news', currentPage],
-    queryFn: async () => {
+    queryFn: async (): Promise<PaginatedArticlesResult> => {
       const offset = (currentPage - 1) * articlesPerPage;
       
       const { data, error, count } = await supabase
@@ -79,7 +85,7 @@ export const useAutoNewsFetcher = () => {
   };
 
   const goToNextPage = () => {
-    if (articles.hasMore) {
+    if (data?.hasMore) {
       setCurrentPage(prev => prev + 1);
     }
   };
@@ -91,9 +97,9 @@ export const useAutoNewsFetcher = () => {
   };
 
   return {
-    articles: articles.articles || [],
-    totalCount: articles.totalCount || 0,
-    hasMore: articles.hasMore || false,
+    articles: data?.articles || [],
+    totalCount: data?.totalCount || 0,
+    hasMore: data?.hasMore || false,
     currentPage,
     articlesPerPage,
     isLoading,
