@@ -74,7 +74,7 @@ const News = () => {
               </div>
             ) : error ? (
               <div className="text-center py-12">
-                <p className="text-red-500 mb-4">Error loading news articles</p>
+                <p className="text-red-500 mb-4">Error loading news articles: {error.message}</p>
                 <Button onClick={() => window.location.reload()}>Try Again</Button>
               </div>
             ) : !newsArticles || newsArticles.length === 0 ? (
