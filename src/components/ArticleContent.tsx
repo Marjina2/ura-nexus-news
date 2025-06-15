@@ -31,9 +31,53 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content }) => {
     return highlightedText;
   };
 
+  // Clean the content to remove any filler/placeholder text
+  const cleanContent = (rawContent: string) => {
+    if (!rawContent) return "This article content is not available at the moment.";
+    
+    // Remove common filler phrases that indicate placeholder content
+    const fillerPatterns = [
+      /Breaking Down the Story[\s\S]*/i,
+      /This development represents a significant moment[\s\S]*/i,
+      /Our comprehensive analysis reveals[\s\S]*/i,
+      /Key Developments and Timeline[\s\S]*/i,
+      /Expert Analysis and Commentary[\s\S]*/i,
+      /Looking Forward: Implications[\s\S]*/i,
+      /Long-term Strategic Considerations[\s\S]*/i,
+      /Environmental and Sustainability Factors[\s\S]*/i,
+      /Innovation and Technological Solutions[\s\S]*/i,
+      /Regional and Global Context[\s\S]*/i,
+      /Conclusion and Ongoing Monitoring[\s\S]*/i
+    ];
+
+    let cleanedContent = rawContent;
+    
+    // Remove filler content patterns
+    fillerPatterns.forEach(pattern => {
+      cleanedContent = cleanedContent.replace(pattern, '');
+    });
+
+    // Clean up any remaining placeholder text
+    cleanedContent = cleanedContent
+      .replace(/This situation has emerged from a confluence of factors[\s\S]*?involved\./gi, '')
+      .replace(/According to industry experts[\s\S]*?instances\./gi, '')
+      .replace(/The involvement of various stakeholders[\s\S]*?outcomes\./gi, '')
+      .trim();
+
+    // If content is too short or empty after cleaning, return a message
+    if (cleanedContent.length < 100) {
+      return rawContent.length > 100 ? rawContent.substring(0, 500) + "..." : "This article content is not available in full at the moment.";
+    }
+
+    return cleanedContent;
+  };
+
   const formatContent = (content: string) => {
+    // Clean the content first
+    const cleanedContent = cleanContent(content);
+    
     // Split content into paragraphs and process each one
-    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    const paragraphs = cleanedContent.split('\n\n').filter(p => p.trim());
     
     return paragraphs.map((paragraph, index) => {
       const trimmedParagraph = paragraph.trim();
