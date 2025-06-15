@@ -1,65 +1,27 @@
 
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsHeader from '@/components/news/NewsHeader';
 import CategoryFilters from '@/components/news/CategoryFilters';
+import NewsGrid from '@/components/news/NewsGrid';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink } from 'lucide-react';
 import EmailVerificationGuard from '@/components/auth/EmailVerificationGuard';
+import { useNewsData } from '@/hooks/useNewsData';
+import { NewsArticleData } from '@/types/news';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
-
-// Define a simple interface for the news article data
-interface NewsArticleData {
-  id: string;
-  original_title: string;
-  rephrased_title: string | null;
-  summary: string | null;
-  image_url: string | null;
-  source_url: string | null;
-  created_at: string;
-}
 
 const News = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Extract the query function to avoid complex type inference
-  const fetchNewsArticles = async () => {
-    console.log('Fetching news articles...');
-    let query = supabase
-      .from('news_articles')
-      .select('id, original_title, rephrased_title, summary, image_url, source_url, created_at')
-      .order('created_at', { ascending: false })
-      .limit(20);
-    
-    if (selectedCategory !== 'all') {
-      query = query.eq('category', selectedCategory);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Articles error:', error);
-      throw error;
-    }
-    console.log('Articles data:', data);
-    return (data || []) as NewsArticleData[];
-  };
-
-  const { data: newsArticles, isLoading, error } = useQuery({
-    queryKey: ['news-articles', selectedCategory],
-    queryFn: fetchNewsArticles,
-    enabled: !!user,
-  });
+  const { data: newsArticles, isLoading, error } = useNewsData(selectedCategory, !!user);
 
   if (authLoading) {
     return (
@@ -135,50 +97,11 @@ const News = () => {
                 <p className="text-muted-foreground">No news articles found for this category.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {newsArticles.map((article) => (
-                  <Card 
-                    key={article.id}
-                    className="bg-card border-border overflow-hidden hover:border-ura-green/50 transition-all duration-200 cursor-pointer group"
-                    onClick={() => handleArticleClick(article)}
-                  >
-                    {article.image_url && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={article.image_url}
-                          alt={article.rephrased_title || article.original_title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                      </div>
-                    )}
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
-                        {article.rephrased_title || article.original_title}
-                      </h3>
-                      
-                      {article.summary && (
-                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                          {article.summary}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(article.created_at)}</span>
-                        </div>
-                        
-                        {article.source_url && (
-                          <div className="flex items-center gap-1">
-                            <ExternalLink className="w-3 h-3" />
-                            <span>Source</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <NewsGrid
+                articles={newsArticles}
+                onArticleClick={handleArticleClick}
+                formatDate={formatDate}
+              />
             )}
           </div>
         </main>
