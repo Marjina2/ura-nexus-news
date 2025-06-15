@@ -20,7 +20,7 @@ const CategoryFilters: React.FC<CategoryFiltersProps> = ({
           key={category}
           variant={selectedCategory === category ? "default" : "outline"}
           onClick={() => onCategoryChange(category)}
-          className={selectedCategory === category ? "bg-pulsee-green text-pulsee-black" : ""}
+          className={selectedCategory === category ? "bg-ura-green text-ura-black" : ""}
           size="sm"
         >
           {category.charAt(0).toUpperCase() + category.slice(1)}

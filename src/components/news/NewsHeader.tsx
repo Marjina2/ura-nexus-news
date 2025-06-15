@@ -13,14 +13,14 @@ const NewsHeader: React.FC<NewsHeaderProps> = ({ onBack }) => {
       <Button 
         onClick={onBack} 
         variant="ghost" 
-        className="mb-6 text-pulsee-white hover:text-pulsee-green"
+        className="mb-6 text-ura-white hover:text-ura-green"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Home
       </Button>
 
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-5xl font-bold text-pulsee-white mb-4">
+        <h1 className="text-3xl md:text-5xl font-bold text-ura-white mb-4">
           Latest Fresh News
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
