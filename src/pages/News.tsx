@@ -18,7 +18,7 @@ import SpotlightSection from '@/components/SpotlightSection';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
-const News = () => {
+const News: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -37,13 +37,10 @@ const News = () => {
     fetchNewArticles,
   } = useAutoNewsFetcher(selectedCategory);
 
-  const handleBack = () => {
-    navigate('/');
-  };
-
+  // Article click/auth gating handler
   const handleArticleClick = (article: NewsArticleData) => {
-    // Check if user is authenticated before allowing article reading
     if (!user) {
+      // Prompt sign in & redirect after auth
       navigate('/auth?redirect=' + encodeURIComponent(`/article?data=${encodeURIComponent(JSON.stringify({
         ...article,
         url: article.source_url || '#',
@@ -51,7 +48,6 @@ const News = () => {
       }))}`));
       return;
     }
-
     const articleData = encodeURIComponent(JSON.stringify({
       ...article,
       url: article.source_url || '#',
@@ -60,6 +56,7 @@ const News = () => {
     navigate(`/article?data=${articleData}`);
   };
 
+  // Utility: formatted article date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -70,35 +67,35 @@ const News = () => {
     });
   };
 
+  // Pagination logic
   const totalPages = Math.ceil(totalCount / articlesPerPage);
 
   return (
-    <div className="min-h-screen bg-ura-black">
+    <div className="min-h-screen bg-ura-black flex flex-col">
       <Header />
-
-      <main className="pt-32 pb-12">
+      <main className="pt-28 pb-12 flex-1">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Spotlight Section at top */}
+          {/* SPOTLIGHT OF THE DAY */}
           <SpotlightSection />
 
-          <NewsHeader onBack={handleBack} />
+          {/* PAGE HEADER & CATEGORY FILTERING */}
+          <NewsHeader onBack={() => navigate('/')} />
           
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <CategoryFilters
               categories={categories}
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
             />
-            
             <div className="flex items-center gap-4">
               <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages} • {totalCount} articles
+                Page {currentPage} of {totalPages || 1} • {totalCount} articles
               </div>
               <Button
                 onClick={fetchNewArticles}
                 variant="outline"
                 size="sm"
-                className="border-ura-green/30 hover:border-ura-green text-ura-white"
+                className="border-ura-green/40 hover:border-ura-green text-ura-white"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
@@ -106,6 +103,7 @@ const News = () => {
             </div>
           </div>
 
+          {/* LOADING STATE */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -120,16 +118,19 @@ const News = () => {
               ))}
             </div>
           ) : error ? (
+            // ERROR STATE
             <div className="text-center py-12">
               <p className="text-red-500 mb-4">Error loading news articles: {error.message}</p>
               <Button onClick={fetchNewArticles}>Try Again</Button>
             </div>
           ) : !articles || articles.length === 0 ? (
+            // EMPTY STATE
             <div className="text-center py-12">
               <p className="text-muted-foreground">No news articles found for this category.</p>
             </div>
           ) : (
             <>
+              {/* PROMPT TO LOGIN */}
               {!user && (
                 <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <p className="text-blue-400 text-center">
@@ -137,14 +138,15 @@ const News = () => {
                   </p>
                 </div>
               )}
-              
+
+              {/* NEWS GRID (deduplicated by useAutoNewsFetcher) */}
               <NewsGrid
                 articles={articles}
                 onArticleClick={handleArticleClick}
                 formatDate={formatDate}
               />
 
-              {/* Pagination */}
+              {/* PAGINATION: Only show if more than one page */}
               {totalPages > 1 && (
                 <div className="mt-12 flex justify-center">
                   <Pagination>
@@ -157,11 +159,10 @@ const News = () => {
                           />
                         </PaginationItem>
                       )}
-                      
+                      {/* 5 page blocks max for nav */}
                       {[...Array(Math.min(5, totalPages))].map((_, i) => {
                         const pageNumber = Math.max(1, currentPage - 2) + i;
                         if (pageNumber > totalPages) return null;
-                        
                         return (
                           <PaginationItem key={pageNumber}>
                             <PaginationLink
@@ -174,7 +175,6 @@ const News = () => {
                           </PaginationItem>
                         );
                       })}
-                      
                       {hasMore && (
                         <PaginationItem>
                           <PaginationNext 
@@ -191,10 +191,10 @@ const News = () => {
           )}
         </div>
       </main>
-
       <Footer />
     </div>
   );
 };
 
 export default News;
+
