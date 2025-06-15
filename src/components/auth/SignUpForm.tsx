@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Github } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import EmailValidator from './EmailValidator';
 
 interface SignUpFormProps {
   onToggleMode: () => void;
@@ -27,11 +29,27 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/
   const [fullName, setFullName] = useState('');
   const [country, setCountry] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailValid, setEmailValid] = useState(true);
+  const [emailValidationMessage, setEmailValidationMessage] = useState('');
   const { signUpWithEmail, signInWithGoogle, signInWithGitHub } = useAuth();
   const { toast } = useToast();
 
+  const handleEmailValidation = (isValid: boolean, message?: string) => {
+    setEmailValid(isValid);
+    setEmailValidationMessage(message || '');
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!emailValid) {
+      toast({
+        title: "Invalid Email",
+        description: emailValidationMessage,
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (!country) {
       toast({
@@ -61,8 +79,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/
       });
     } else {
       toast({
-        title: "Check your email!",
-        description: "We've sent you a verification link to complete your registration.",
+        title: "Account created!",
+        description: "Please check your email to verify your account. You must verify within 24 hours.",
       });
     }
     
@@ -189,6 +207,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/
               className="bg-background/50 border-border/50 rounded-xl focus:border-ura-green transition-all duration-200"
               placeholder="john@example.com"
             />
+            <EmailValidator email={email} onValidationChange={handleEmailValidation} />
           </div>
           
           <div className="space-y-2">
@@ -218,11 +237,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onToggleMode, redirectPath = '/
               </SelectContent>
             </Select>
           </div>
+
+          <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <p className="text-xs text-yellow-500 font-medium mb-1">Important Notice:</p>
+            <p className="text-xs text-muted-foreground">
+              • You must verify your email within 24 hours
+              • Temporary/disposable emails are not allowed
+              • Only verified users can read news articles
+            </p>
+          </div>
           
           <Button 
             type="submit" 
             className="w-full bg-ura-green text-ura-black hover:bg-ura-green-hover rounded-xl h-12 font-semibold transition-all duration-200 hover:shadow-lg"
-            disabled={loading}
+            disabled={loading || !emailValid}
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </Button>

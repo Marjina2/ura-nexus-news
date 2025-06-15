@@ -1,286 +1,177 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, Sparkles, ExternalLink, RefreshCw, AlertCircle, Clock } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import LoginPromptModal from '@/components/auth/LoginPromptModal';
-import { useToast } from '@/hooks/use-toast';
-import { useSpotlightNews, useNewsArticles, useNewsOperations } from '@/hooks/useNewsOperations';
 import NewsHeader from '@/components/news/NewsHeader';
 import CategoryFilters from '@/components/news/CategoryFilters';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Calendar, Eye, ExternalLink } from 'lucide-react';
+import EmailVerificationGuard from '@/components/auth/EmailVerificationGuard';
+
+const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
 const News = () => {
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('general');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const { data: spotlight, isLoading: spotlightLoading, error: spotlightError } = useSpotlightNews();
-  const { data: articles = [], isLoading: articlesLoading, error: articlesError, refetch } = useNewsArticles(selectedCategory);
-  const { isGenerating, generateNews, formatDate } = useNewsOperations();
+  const { data: newsArticles, isLoading, error } = useQuery({
+    queryKey: ['news-articles', selectedCategory],
+    queryFn: async () => {
+      console.log('Fetching news articles...');
+      let query = supabase
+        .from('news_articles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Articles error:', error);
+        throw error;
+      }
+      console.log('Articles data:', data);
+      return data;
+    },
+    enabled: !!user, // Only fetch when user is logged in
+  });
 
-  const categories = ['general', 'business', 'technology', 'sports', 'health', 'entertainment'];
-  const isLoading = spotlightLoading || articlesLoading;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-ura-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ura-green mx-auto mb-4"></div>
+        <div className="text-ura-white">Loading...</div>
+      </div>
+    );
+  }
 
-  const handleArticleClick = (article: any) => {
-    if (!user) {
-      setShowLoginModal(true);
-      return;
-    }
-    
-    if (article.source_url) {
-      window.open(article.source_url, '_blank', 'noopener,noreferrer');
-    }
+  if (!user) {
+    return <Navigate to="/auth?redirect=/news" replace />;
+  }
+
+  const handleBack = () => {
+    navigate('/');
   };
 
-  const handleReadArticle = (article: any) => {
-    if (!user) {
-      setShowLoginModal(true);
-      return;
-    }
-    
+  const handleArticleClick = (article: any) => {
     const articleData = encodeURIComponent(JSON.stringify({
       ...article,
-      title: article.rephrased_title || article.original_title,
-      description: article.summary,
-      content: article.summary,
-      url: article.source_url,
-      publishedAt: article.created_at,
-      image_url: article.image_url
+      url: article.source_url || '#',
+      source: { name: 'URA News' }
     }));
-    
     navigate(`/article?data=${articleData}`);
   };
 
-  const handleGenerateNews = async () => {
-    try {
-      await generateNews();
-      refetch();
-    } catch (error) {
-      // Error handling is done in useNewsOperations
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
-    <div className="min-h-screen bg-pulsee-black">
-      <Header />
-      <main className="pt-32 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <NewsHeader onBack={() => navigate('/')} />
-
-          <CategoryFilters
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
-
-          {/* Error States */}
-          {(spotlightError || articlesError) && (
-            <div className="mb-8 p-4 bg-red-900/20 border border-red-500/20 rounded-lg">
-              <div className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="w-5 h-5" />
-                <span>Error loading news: {spotlightError?.message || articlesError?.message}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Spotlight Section */}
-          {spotlight && (
-            <div className="relative py-8 bg-gradient-to-br from-red-900/30 via-orange-900/20 to-yellow-900/10 border border-red-500/20 rounded-2xl mb-8 overflow-hidden">
-              <div className="absolute inset-0 opacity-10 animate-pulse bg-grid" />
-              <div className="relative max-w-3xl mx-auto flex flex-col items-center gap-6 px-4">
-                <span className="inline-block mb-2 text-lg text-red-400 uppercase font-bold tracking-widest">
-                  Today's Spotlight
-                </span>
-                <div className="w-full max-w-lg h-56 rounded-xl overflow-hidden border border-red-500/30 bg-black/20 mx-auto shrink-0 mb-4">
-                  <img 
-                    src={spotlight.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"} 
-                    alt={spotlight.seo_title} 
-                    className="object-cover w-full h-full" 
-                  />
-                </div>
-                <div className="text-center">
-                  <h2 className="text-3xl md:text-4xl font-bold text-pulsee-white mb-4">
-                    {spotlight.seo_title || spotlight.gemini_topic}
-                  </h2>
-                  <p className="mb-6 text-muted-foreground">{spotlight.summary}</p>
-                  <Button
-                    onClick={() => navigate(`/spotlight/${spotlight.date}`)}
-                    className="bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 px-6 py-3 text-lg font-semibold rounded-full"
-                  >
-                    Read Full Coverage <ExternalLink className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* AI-Rephrased News Section */}
-          <div className="mb-12">
-            <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
-                  <Sparkles /> AI-Rephrased Fresh News
-                </h2>
-                <div className="max-w-2xl text-muted-foreground mb-4">
-                  Handpicked latest news from trusted sources, AI-reworded for clarity & neutrality.
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => refetch()}
-                  variant="outline"
-                  size="sm"
-                  disabled={isLoading}
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button
-                  onClick={handleGenerateNews}
-                  className="bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover"
-                  size="sm"
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate News
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+    <EmailVerificationGuard>
+      <div className="min-h-screen bg-ura-black">
+        <Header />
+        
+        <main className="pt-32 pb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <NewsHeader onBack={handleBack} />
             
-            {/* Loading State */}
-            {isLoading && (
-              <div className="text-center py-8">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-pulsee-green" />
-                <p className="text-muted-foreground">Loading latest news...</p>
-              </div>
-            )}
+            <CategoryFilters
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
 
-            {/* Articles Grid */}
-            {!isLoading && articles.length > 0 && (
+            {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articles.slice(0, 10).map((article) => (
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="bg-card border-border overflow-hidden">
+                    <Skeleton className="h-48 w-full" />
+                    <CardContent className="p-6">
+                      <Skeleton className="h-6 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4 mb-4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500 mb-4">Error loading news articles</p>
+                <Button onClick={() => window.location.reload()}>Try Again</Button>
+              </div>
+            ) : !newsArticles || newsArticles.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No news articles found for this category.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {newsArticles.map((article) => (
                   <Card 
-                    key={article.id} 
-                    className="bg-card/60 border hover:shadow-lg hover:border-ura-green/30 h-full flex flex-col cursor-pointer transition-all duration-200 group"
+                    key={article.id}
+                    className="bg-card border-border overflow-hidden hover:border-ura-green/50 transition-all duration-200 cursor-pointer group"
+                    onClick={() => handleArticleClick(article)}
                   >
-                    <div className="relative">
-                      <img
-                        src={article.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"}
-                        alt={article.rephrased_title || article.original_title}
-                        className="w-full h-48 object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
-                        }}
-                      />
-                      {!user && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <div className="bg-ura-green text-ura-black px-3 py-1 rounded-full text-sm font-semibold">
-                            Login to Read
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-ura-green/90 text-ura-black font-medium">
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          Fresh
-                        </Badge>
+                    {article.image_url && (
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={article.image_url}
+                          alt={article.rephrased_title || article.original_title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        />
                       </div>
-                    </div>
-                    
-                    <CardContent className="p-5 flex flex-col h-full">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                        <Clock className="w-4 h-4" />
-                        {formatDate(article.created_at)}
-                      </div>
-                      
-                      <h3 className="text-lg font-bold mb-2 text-pulsee-white group-hover:text-ura-green transition-colors leading-tight">
+                    )}
+                    <CardContent className="p-6">
+                      <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
                         {article.rephrased_title || article.original_title}
                       </h3>
                       
-                      <p className="text-sm mb-4 text-muted-foreground line-clamp-3 flex-1">
-                        {article.summary}
-                      </p>
-                      
-                      <div className="mt-auto">
-                        <Button
-                          onClick={() => handleReadArticle(article)}
-                          className="w-full bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover"
-                          size="sm"
-                        >
-                          Read Article
-                        </Button>
+                      {article.summary && (
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                          {article.summary}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(article.created_at)}</span>
+                        </div>
+                        
+                        {article.source_url && (
+                          <div className="flex items-center gap-1">
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Source</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             )}
-
-            {/* No Articles State */}
-            {!isLoading && articles.length === 0 && (
-              <div className="text-center py-12">
-                <div className="mb-6">
-                  <Sparkles className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-semibold text-pulsee-white mb-2">No Articles Found</h3>
-                  <p className="text-muted-foreground mb-6">
-                    It looks like there are no articles in the database yet. Generate some fresh news to get started!
-                  </p>
-                </div>
-                <div className="flex gap-4 justify-center">
-                  <Button
-                    onClick={handleGenerateNews}
-                    className="bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover"
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Generating News...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate Fresh News
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={() => refetch()}
-                    variant="outline"
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </main>
-      <Footer />
+        </main>
 
-      <LoginPromptModal 
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        redirectPath="/news"
-      />
-    </div>
+        <Footer />
+      </div>
+    </EmailVerificationGuard>
   );
 };
 

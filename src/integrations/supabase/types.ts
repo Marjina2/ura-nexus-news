@@ -411,6 +411,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_unverified_users: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_verification_token: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -418,6 +422,10 @@ export type Database = {
       increment_article_views: {
         Args: { article_url: string }
         Returns: undefined
+      }
+      is_valid_email_domain: {
+        Args: { email_address: string }
+        Returns: boolean
       }
     }
     Enums: {
