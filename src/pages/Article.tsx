@@ -49,12 +49,12 @@ const Article = () => {
       const { error: insertError } = await supabase
         .from('saved_articles')
         .upsert({
-          title: cleanTitle(articleData.original_title || articleData.title),
-          description: articleData.summary || articleData.description,
+          title: cleanTitle(articleData.original_title || articleData.title || ''),
+          description: articleData.summary || articleData.description || '',
           content: articleData.content || getComprehensiveArticleContent(articleData),
-          url: articleData.source_url || articleData.url,
-          image_url: articleData.image_url || articleData.urlToImage,
-          published_at: articleData.created_at || articleData.publishedAt || articleData.published_at,
+          url: articleData.source_url || articleData.url || '',
+          image_url: articleData.image_url || articleData.urlToImage || '',
+          published_at: articleData.created_at || articleData.publishedAt || articleData.published_at || new Date().toISOString(),
           source_name: 'URA News',
           category: articleData.category || 'general',
         }, {
@@ -65,22 +65,25 @@ const Article = () => {
         console.error('Error saving article:', insertError);
       }
 
-      const { error: incrementError } = await supabase.rpc('increment_article_views', {
-        article_url: articleData.source_url || articleData.url
-      });
+      const articleUrl = articleData.source_url || articleData.url || '';
+      if (articleUrl) {
+        const { error: incrementError } = await supabase.rpc('increment_article_views', {
+          article_url: articleUrl
+        });
 
-      if (incrementError) {
-        console.error('Error incrementing view count:', incrementError);
-      }
+        if (incrementError) {
+          console.error('Error incrementing view count:', incrementError);
+        }
 
-      const { data: viewData } = await supabase
-        .from('saved_articles')
-        .select('view_count')
-        .eq('url', articleData.source_url || articleData.url)
-        .single();
+        const { data: viewData } = await supabase
+          .from('saved_articles')
+          .select('view_count')
+          .eq('url', articleUrl)
+          .single();
 
-      if (viewData) {
-        setViewCount(viewData.view_count);
+        if (viewData) {
+          setViewCount(viewData.view_count);
+        }
       }
     } catch (error) {
       console.error('Error in saveArticleAndIncrementViews:', error);
@@ -88,6 +91,7 @@ const Article = () => {
   };
 
   const cleanTitle = (title: string) => {
+    if (!title) return '';
     return title
       .replace(/^\d+\.\s*/, '')
       .replace(/\[\d+\]/g, '')
@@ -97,6 +101,7 @@ const Article = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Just now';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -110,8 +115,8 @@ const Article = () => {
   const handleShare = () => {
     if (navigator.share && article) {
       navigator.share({
-        title: cleanTitle(article.original_title || article.title),
-        text: article.summary || article.description,
+        title: cleanTitle(article.original_title || article.title || ''),
+        text: article.summary || article.description || '',
         url: window.location.href
       });
     } else if (article) {
@@ -128,16 +133,17 @@ const Article = () => {
 
     if (!article) return;
 
+    const articleUrl = article.source_url || article.url || '';
     const bookmarkData = {
-      url: article.source_url || article.url,
-      title: cleanTitle(article.original_title || article.title),
-      description: article.summary || article.description,
-      image_url: article.image_url || article.urlToImage,
+      url: articleUrl,
+      title: cleanTitle(article.original_title || article.title || ''),
+      description: article.summary || article.description || '',
+      image_url: article.image_url || article.urlToImage || '',
       source_name: 'URA News',
     };
 
-    if (isBookmarked(article.source_url || article.url)) {
-      const success = await removeBookmark(article.source_url || article.url);
+    if (isBookmarked(articleUrl)) {
+      const success = await removeBookmark(articleUrl);
       if (success) {
         toast.success('Bookmark removed');
       } else {
@@ -154,13 +160,14 @@ const Article = () => {
   };
 
   const handleViewSource = () => {
-    if (article?.source_url || article?.url) {
-      window.open(article.source_url || article.url, '_blank', 'noopener,noreferrer');
+    const sourceUrl = article?.source_url || article?.url;
+    if (sourceUrl) {
+      window.open(sourceUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
   const getComprehensiveArticleContent = (article: any) => {
-    const title = cleanTitle(article.original_title || article.title);
+    const title = cleanTitle(article.original_title || article.title || '');
     const summary = article.summary || article.description || '';
     
     // Generate comprehensive content based on the title and summary
@@ -286,7 +293,7 @@ The outcomes of this situation will likely have lasting implications for how sim
   }
 
   const fullContent = getComprehensiveArticleContent(article);
-  const cleanedTitle = cleanTitle(article.original_title || article.title);
+  const cleanedTitle = cleanTitle(article.original_title || article.title || '');
 
   return (
     <div className="min-h-screen bg-ura-black">
@@ -304,10 +311,10 @@ The outcomes of this situation will likely have lasting implications for how sim
           </Button>
 
           <Card className="bg-card border-border overflow-hidden">
-            {article.image_url && (
+            {(article.image_url || article.urlToImage) && (
               <div className="relative overflow-hidden">
                 <img 
-                  src={article.image_url}
+                  src={article.image_url || article.urlToImage || ''}
                   alt={cleanedTitle}
                   className="w-full h-64 md:h-96 object-cover"
                   onError={(e) => {
@@ -327,7 +334,7 @@ The outcomes of this situation will likely have lasting implications for how sim
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
-                  {formatDate(article.created_at || new Date().toISOString())}
+                  {formatDate(article.created_at || article.publishedAt || new Date().toISOString())}
                 </div>
                 {viewCount > 0 && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -353,12 +360,12 @@ The outcomes of this situation will likely have lasting implications for how sim
                   Share
                 </Button>
                 <Button onClick={handleBookmark} variant="outline" className="flex-1 sm:flex-none">
-                  {isBookmarked(article.source_url || article.url) ? (
+                  {isBookmarked(article.source_url || article.url || '') ? (
                     <BookmarkCheck className="w-4 h-4 mr-2" />
                   ) : (
                     <Bookmark className="w-4 h-4 mr-2" />
                   )}
-                  {isBookmarked(article.source_url || article.url) ? 'Saved' : 'Save'}
+                  {isBookmarked(article.source_url || article.url || '') ? 'Saved' : 'Save'}
                 </Button>
               </div>
             </CardHeader>

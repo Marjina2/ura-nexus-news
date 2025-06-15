@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +35,11 @@ export interface AIGeneratedArticle {
 export interface EnhancedArticle extends NewsArticle {
   enhanced?: boolean;
   aiSummary?: string;
+  original_title?: string;
+  rephrased_title?: string;
+  summary?: string;
+  source_url?: string;
+  created_at?: string;
 }
 
 export const useNews = (category: string = 'general', country: string = 'in') => {
