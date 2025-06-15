@@ -47,8 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!error && data) {
         setProfile(data);
         
-        // Check if profile needs completion (missing required fields)
-        const isIncomplete = !data.full_name || !data.phone_number || !data.country;
+        const isIncomplete = !data.full_name || !data.country;
         setNeedsProfileCompletion(isIncomplete);
       }
     } catch (error) {
@@ -59,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let isMounted = true;
 
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
@@ -70,7 +68,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile fetch to avoid potential deadlock
           setTimeout(() => {
             if (isMounted) {
               fetchProfile(session.user.id);
@@ -85,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Then check for existing session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -172,9 +168,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, password: string, username: string, country: string, fullName: string) => {
     try {
+      console.log('Starting email sign up process...');
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -187,11 +184,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
+      console.log('Sign up response:', { data, error });
+      
       if (!error) {
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
-        });
+        console.log('Sign up successful, user should receive verification email');
       }
       
       return { error };
@@ -244,8 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const updatedProfile = { ...profile, ...updates };
         setProfile(updatedProfile);
         
-        // Check if profile completion is no longer needed
-        const isIncomplete = !updatedProfile.full_name || !updatedProfile.phone_number || !updatedProfile.country;
+        const isIncomplete = !updatedProfile.full_name || !updatedProfile.country;
         setNeedsProfileCompletion(isIncomplete);
         
         toast({
