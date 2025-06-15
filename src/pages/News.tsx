@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { NewsArticle, useNews } from '@/hooks/useNews';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import RephrasedNewsFeed from '@/components/RephrasedNewsFeed'; // <-- FIXED: Import added
 
 const News = () => {
   const navigate = useNavigate();

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +29,6 @@ export function useRephrasedNews() {
       if (error) throw error;
       return data as RephrasedNewsArticle[];
     },
-    keepPreviousData: true,
   });
 
   // If fewer than PAGE_SIZE received, no more data.
