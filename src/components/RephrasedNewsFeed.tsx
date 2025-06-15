@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useRephrasedNews } from "@/hooks/useRephrasedNews";
 import { Button } from "@/components/ui/button";
@@ -5,12 +6,12 @@ import { Sparkles } from "lucide-react";
 
 const FILTERS = [
   { label: "Latest", value: "latest" },
-  { label: "Controversial (India)", value: "controversial" },
+  { label: "Controversial", value: "controversial" },
 ];
 
 const RephrasedNewsFeed: React.FC = () => {
   const [filter, setFilter] = useState<"latest" | "controversial">("latest");
-  const { articles, isLoading, error, hasMore, loadMore, isFetching, setPage } = useRephrasedNews(filter);
+  const { articles, isLoading, error, isFetching, setPage } = useRephrasedNews(filter);
 
   React.useEffect(() => {
     setPage(1);
@@ -29,7 +30,7 @@ const RephrasedNewsFeed: React.FC = () => {
   if (error) {
     return (
       <div className="py-8 text-center text-red-500">
-        Failed to load AI-rephrased news. <Button variant="outline" onClick={loadMore}>Retry</Button>
+        Failed to load AI-rephrased news.
       </div>
     );
   }
@@ -50,7 +51,7 @@ const RephrasedNewsFeed: React.FC = () => {
             <Sparkles /> AI-Rephrased Fresh News
           </h2>
           <div className="max-w-2xl text-muted-foreground mb-4">
-            Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality, fully automated every 15 minutes.
+            Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality.
           </div>
         </div>
         <div className="flex space-x-2">
@@ -67,18 +68,10 @@ const RephrasedNewsFeed: React.FC = () => {
           ))}
         </div>
       </div>
-      {/* Article Grid */}
+      {/* Article Grid - No Images */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {articles.map((article) => (
-          <div key={article.id} className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg">
-            <img
-              src={article.image_url || "/placeholder.svg"}
-              alt={article.rephrased_title || article.original_title}
-              className="w-full h-48 object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.svg";
-              }}
-            />
+        {articles.slice(0, 5).map((article) => (
+          <div key={article.id} className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg h-full flex flex-col">
             <div className="p-5 flex flex-col h-full">
               <div className="mb-2 text-xs text-muted-foreground">{new Date(article.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
               <h3 className="text-lg font-bold mb-2 text-pulsee-white">{article.rephrased_title || article.original_title}</h3>
@@ -95,13 +88,6 @@ const RephrasedNewsFeed: React.FC = () => {
           </div>
         ))}
       </div>
-      {hasMore && (
-        <div className="text-center mt-6">
-          <Button onClick={loadMore} disabled={isFetching}>
-            {isFetching ? "Loading..." : "Load More"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

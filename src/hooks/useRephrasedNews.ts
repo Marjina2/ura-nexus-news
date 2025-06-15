@@ -13,7 +13,7 @@ export interface RephrasedNewsArticle {
   created_at: string;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 export function useRephrasedNews(type: "latest" | "controversial" = "latest") {
   const [page, setPage] = useState(1);
@@ -31,7 +31,7 @@ export function useRephrasedNews(type: "latest" | "controversial" = "latest") {
         if (error) throw error;
         return data as RephrasedNewsArticle[];
       } else if (type === "controversial") {
-        // Filter for keywords suggesting controversy in India
+        // Controversial filter for India related topics (keywords)
         const { data, error } = await supabase
           .from("news_articles")
           .select("*")
@@ -47,9 +47,6 @@ export function useRephrasedNews(type: "latest" | "controversial" = "latest") {
     },
   });
 
-  const hasMore = (data?.length ?? 0) === PAGE_SIZE;
-  const loadMore = () => setPage((p) => p + 1);
-
   return {
     articles: data ?? [],
     isLoading,
@@ -57,8 +54,6 @@ export function useRephrasedNews(type: "latest" | "controversial" = "latest") {
     error,
     refetch,
     page,
-    hasMore,
-    loadMore,
     setPage,
   };
 }
