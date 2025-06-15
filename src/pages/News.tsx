@@ -11,40 +11,52 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Calendar, Eye, ExternalLink } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
 import EmailVerificationGuard from '@/components/auth/EmailVerificationGuard';
 
 const categories = ['all', 'general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
+
+interface NewsArticle {
+  id: string;
+  original_title: string;
+  rephrased_title?: string;
+  summary?: string;
+  image_url?: string;
+  source_url?: string;
+  created_at: string;
+}
 
 const News = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  const fetchNewsArticles = async (): Promise<NewsArticle[]> => {
+    console.log('Fetching news articles...');
+    let query = supabase
+      .from('news_articles')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (selectedCategory !== 'all') {
+      query = query.eq('category', selectedCategory);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Articles error:', error);
+      throw error;
+    }
+    console.log('Articles data:', data);
+    return data || [];
+  };
+
   const { data: newsArticles, isLoading, error } = useQuery({
     queryKey: ['news-articles', selectedCategory],
-    queryFn: async () => {
-      console.log('Fetching news articles...');
-      let query = supabase
-        .from('news_articles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Articles error:', error);
-        throw error;
-      }
-      console.log('Articles data:', data);
-      return data;
-    },
-    enabled: !!user, // Only fetch when user is logged in
+    queryFn: fetchNewsArticles,
+    enabled: !!user,
   });
 
   if (authLoading) {
@@ -64,7 +76,7 @@ const News = () => {
     navigate('/');
   };
 
-  const handleArticleClick = (article: any) => {
+  const handleArticleClick = (article: NewsArticle) => {
     const articleData = encodeURIComponent(JSON.stringify({
       ...article,
       url: article.source_url || '#',
