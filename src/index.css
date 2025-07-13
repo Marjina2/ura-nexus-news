@@ -182,4 +182,38 @@
   .stagger-animation {
     animation-delay: calc(var(--animation-order, 0) * 0.1s);
   }
+
+  /* Clerk custom styles */
+  .clerk-auth-container .cl-formButtonPrimary {
+    background-color: #00ff9d !important;
+    color: #0a0a0a !important;
+  }
+
+  .clerk-auth-container .cl-formButtonPrimary:hover {
+    background-color: #00e68a !important;
+  }
+
+  .clerk-auth-container .cl-socialButtonsBlockButton {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffffde !important;
+  }
+
+  .clerk-auth-container .cl-formFieldInput {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffffde !important;
+  }
+
+  .clerk-auth-container .cl-formFieldLabel {
+    color: #ffffffde !important;
+  }
+
+  .clerk-auth-container .cl-footerActionLink {
+    color: #00ff9d !important;
+  }
+
+  .clerk-auth-container .cl-footerActionLink:hover {
+    color: #00e68a !important;
+  }
 }

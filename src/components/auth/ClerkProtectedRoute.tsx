@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Navigate, useSearchParams } from 'react-router-dom';
-import ClerkAuthForm from '@/components/auth/ClerkAuthForm';
+import { Navigate, useLocation } from 'react-router-dom';
 
-const Auth = () => {
-  const [searchParams] = useSearchParams();
+interface ClerkProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ClerkProtectedRoute: React.FC<ClerkProtectedRouteProps> = ({ children }) => {
   const { isSignedIn, isLoaded } = useUser();
-  
-  const redirectPath = searchParams.get('redirect') || '/';
+  const location = useLocation();
 
   // Show loading while Clerk is initializing
   if (!isLoaded) {
@@ -20,12 +21,12 @@ const Auth = () => {
     );
   }
 
-  // Redirect if already signed in
-  if (isSignedIn) {
-    return <Navigate to={redirectPath} replace />;
+  // Redirect to auth if not signed in
+  if (!isSignedIn) {
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  return <ClerkAuthForm />;
+  return <>{children}</>;
 };
 
-export default Auth;
+export default ClerkProtectedRoute;
