@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@clerk/clerk-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [bookmarks, setBookmarks] = useState<any[]>([]);
 
   useEffect(() => {

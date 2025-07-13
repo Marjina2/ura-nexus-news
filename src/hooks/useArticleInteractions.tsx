@@ -1,12 +1,12 @@
 
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { EnhancedArticle } from '@/hooks/useNews';
 import { useArticleContent } from '@/hooks/useArticleContent';
 
 export const useArticleInteractions = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const { addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const { cleanTitle } = useArticleContent();
 

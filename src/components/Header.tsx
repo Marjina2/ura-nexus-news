@@ -6,15 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/contexts/AuthContext';
-import UserAvatar from '@/components/auth/UserAvatar';
-import VerificationBadge from '@/components/auth/VerificationBadge';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import ClerkUserAvatar from '@/components/auth/ClerkUserAvatar';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { user, profile, signOut } = useAuth();
+  const { user, isSignedIn } = useUser();
+  const { signOut } = useClerk();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const Header = () => {
   }, []);
 
   // Check if user has Pro subscription (mock for now)
-  const isPro = profile?.subscription === 'pro';
+  const isPro = false; // TODO: Implement pro subscription check with Clerk
 
   const handleSubscribe = () => {
     // TODO: Integrate with Beehive newsletter subscription
@@ -65,7 +65,7 @@ const Header = () => {
               <a href="/about" className="text-pulsee-white hover:text-pulsee-green transition-colors">About</a>
               <a href="/pricing" className="text-pulsee-white hover:text-pulsee-green transition-colors">Pricing</a>
               <a href="/contact" className="text-pulsee-white hover:text-pulsee-green transition-colors">Contact</a>
-              {user && (
+              {isSignedIn && (
                 <a href="/dashboard" className="text-pulsee-white hover:text-pulsee-green transition-colors flex items-center gap-2">
                   Dashboard
                   {isPro && <Crown className="w-4 h-4 text-pulsee-green" />}
@@ -86,7 +86,7 @@ const Header = () => {
                 Subscribe
               </Button>
 
-              {!user ? (
+              {!isSignedIn ? (
                 <>
                   <Button 
                     variant="ghost" 
@@ -124,18 +124,17 @@ const Header = () => {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-                        <UserAvatar user={user} profile={profile} size="sm" />
+                        <ClerkUserAvatar />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56 bg-card border-border">
                       <div className="flex items-center justify-start gap-2 p-2">
-                        <UserAvatar user={user} profile={profile} size="sm" />
+                        <ClerkUserAvatar />
                         <div className="flex flex-col space-y-1 leading-none">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-pulsee-white">{profile?.full_name || 'User'}</p>
-                            <VerificationBadge isVerified={profile?.is_verified} size="sm" showText={false} />
+                            <p className="font-medium text-pulsee-white">{user?.fullName || user?.firstName || 'User'}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground">@{profile?.username}</p>
+                          <p className="text-xs text-muted-foreground">@{user?.username || user?.emailAddresses[0]?.emailAddress}</p>
                         </div>
                       </div>
                       <DropdownMenuSeparator />
@@ -143,7 +142,7 @@ const Header = () => {
                         <Bookmark className="mr-2 h-4 w-4" />
                         Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/account')}>
+                      <DropdownMenuItem onClick={() => navigate('/account-settings')}>
                         <Settings className="mr-2 h-4 w-4" />
                         Settings
                       </DropdownMenuItem>
@@ -174,10 +173,9 @@ const Header = () => {
                       </div>
                       <span className="text-2xl font-bold gradient-text">Pulsee</span>
                     </div>
-                    {user && (
+                    {isSignedIn && (
                       <div className="flex items-center gap-2">
                         {isPro && <Badge variant="secondary" className="bg-pulsee-green text-pulsee-black">Pro</Badge>}
-                        <VerificationBadge isVerified={profile?.is_verified} size="sm" showText={false} />
                       </div>
                     )}
                   </div>
@@ -188,7 +186,7 @@ const Header = () => {
                     <a href="/about" className="block text-pulsee-white hover:text-pulsee-green transition-colors text-lg">About</a>
                     <a href="/pricing" className="block text-pulsee-white hover:text-pulsee-green transition-colors text-lg">Pricing</a>
                     <a href="/contact" className="block text-pulsee-white hover:text-pulsee-green transition-colors text-lg">Contact</a>
-                    {user && (
+                    {isSignedIn && (
                       <a href="/dashboard" className="block text-pulsee-white hover:text-pulsee-green transition-colors text-lg flex items-center gap-2">
                         Dashboard
                         {isPro && <Crown className="w-4 h-4 text-pulsee-green" />}
@@ -208,7 +206,7 @@ const Header = () => {
                       Subscribe to Newsletter
                     </Button>
 
-                    {!user ? (
+                    {!isSignedIn ? (
                       <>
                         <Button 
                           variant="outline" 
@@ -237,7 +235,7 @@ const Header = () => {
                         <Button 
                           variant="outline" 
                           className="w-full"
-                          onClick={() => navigate('/account')}
+                          onClick={() => navigate('/account-settings')}
                         >
                           <Settings className="w-4 h-4 mr-2" />
                           Account Settings

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Bookmark {
@@ -14,7 +14,7 @@ export interface Bookmark {
 }
 
 export const useBookmarks = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

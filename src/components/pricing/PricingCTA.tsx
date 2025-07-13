@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 
 const PricingCTA = () => {
-  const { user } = useAuth();
+  const { isSignedIn } = useUser();
 
   return (
     <section className="py-20 px-4">
@@ -15,7 +15,7 @@ const PricingCTA = () => {
         <p className="text-xl text-muted-foreground mb-8">
           Join thousands of users who trust Pulsee for their daily news
         </p>
-        {!user ? (
+        {!isSignedIn ? (
           <Button 
             className="bg-pulsee-green text-pulsee-black hover:bg-pulsee-green-hover px-8 py-3 text-lg"
             onClick={() => window.location.href = '/auth'}
