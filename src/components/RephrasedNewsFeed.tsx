@@ -1,152 +1,88 @@
 
-import React, { useState } from "react";
-import { useRephrasedNews } from "@/hooks/useRephrasedNews";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import LoginPromptModal from "@/components/auth/LoginPromptModal";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useUser } from '@clerk/clerk-react';
+import { useRephrasedNews } from '@/hooks/useRephrasedNews';
 
-const FILTERS = [
-  { label: "Latest", value: "latest" },
-  { label: "Controversial", value: "controversial" },
-];
+const RephrasedNewsFeed = () => {
+  const { isSignedIn } = useUser();
+  const { articles, loading, error, fetchNews } = useRephrasedNews();
 
-const RephrasedNewsFeed: React.FC = () => {
-  const [filter, setFilter] = useState<"latest" | "controversial">("latest");
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const { articles, isLoading, error, isFetching, setPage } = useRephrasedNews(filter);
-  const { user } = useAuth();
-
-  React.useEffect(() => {
-    setPage(1);
-    // eslint-disable-next-line
-  }, [filter]);
-
-  const handleArticleClick = (article: any) => {
-    if (!user) {
-      setShowLoginModal(true);
-      return;
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchNews();
     }
-    
-    // If user is authenticated, open the article
-    if (article.source_url) {
-      window.open(article.source_url, '_blank', 'noopener,noreferrer');
-    }
-  };
+  }, [isSignedIn, fetchNews]);
 
-  if (isLoading) {
+  if (!isSignedIn) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        <Sparkles className="animate-spin mx-auto mb-2" />
-        Loading curated AI-rephrased news...
+      <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <p className="text-blue-400 text-center">
+          📰 Browse news freely! Sign in to read full articles.
+        </p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader>
+              <div className="h-6 bg-muted rounded w-3/4"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-4 bg-muted rounded mb-2"></div>
+              <div className="h-4 bg-muted rounded w-2/3"></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="py-8 text-center text-red-500">
-        Failed to load AI-rephrased news. Please try again later.
-      </div>
-    );
-  }
-
-  if (!articles.length) {
-    return (
-      <div className="py-8 text-center text-muted-foreground">
-        No AI-rephrased news articles found yet.
+      <div className="text-center py-8">
+        <p className="text-destructive mb-4">{error}</p>
+        <Button onClick={fetchNews}>Try Again</Button>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="mb-12">
-        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-ura-green mb-2 flex items-center gap-2">
-              <Sparkles /> AI-Rephrased Fresh News
-            </h2>
-            <div className="max-w-2xl text-muted-foreground mb-4">
-              Handpicked latest news from trusted sources, AI-reworded by Gemini for clarity & neutrality.
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            {FILTERS.map((f) => (
-              <Button
-                key={f.value}
-                variant={filter === f.value ? "default" : "outline"}
-                onClick={() => setFilter(f.value as any)}
-                className={filter === f.value ? "bg-pulsee-green text-pulsee-black" : ""}
-                size="sm"
-              >
-                {f.label}
+    <div className="space-y-6">
+      {articles.map((article, index) => (
+        <Card key={index}>
+          <CardHeader>
+            <CardTitle className="text-xl">
+              {article.rephrased_title || article.original_title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {article.image_url && (
+              <img 
+                src={article.image_url} 
+                alt={article.rephrased_title || article.original_title}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+            )}
+            {article.summary && (
+              <p className="text-muted-foreground mb-4">{article.summary}</p>
+            )}
+            {article.source_url && (
+              <Button variant="outline" asChild>
+                <a href={article.source_url} target="_blank" rel="noopener noreferrer">
+                  Read Original
+                </a>
               </Button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Article Grid with Images */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.slice(0, 10).map((article) => (
-            <div 
-              key={article.id} 
-              className="bg-card/60 border rounded-lg overflow-hidden hover:shadow-lg hover:border-ura-green/30 h-full flex flex-col cursor-pointer transition-all duration-200"
-              onClick={() => handleArticleClick(article)}
-            >
-              <div className="relative">
-                <img
-                  src={article.image_url || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop"}
-                  alt={article.rephrased_title || article.original_title}
-                  className="w-full h-48 object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop";
-                  }}
-                />
-                {!user && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="bg-ura-green text-ura-black px-3 py-1 rounded-full text-sm font-semibold">
-                      Login to Read
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="p-5 flex flex-col h-full">
-                <div className="mb-2 text-xs text-muted-foreground">
-                  {new Date(article.created_at).toLocaleString("en-IN", { 
-                    dateStyle: "medium", 
-                    timeStyle: "short" 
-                  })}
-                </div>
-                <h3 className="text-lg font-bold mb-2 text-pulsee-white">
-                  {article.rephrased_title || article.original_title}
-                </h3>
-                <p className="text-sm mb-4 text-muted-foreground line-clamp-3">
-                  {article.summary}
-                </p>
-                <div className="mt-auto">
-                  {user ? (
-                    <span className="inline-flex items-center gap-1 text-ura-green font-semibold hover:underline">
-                      Read Source
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold">
-                      Login Required
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <LoginPromptModal 
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        redirectPath="/news"
-      />
-    </>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

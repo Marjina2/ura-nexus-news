@@ -1,80 +1,78 @@
 
 import React from 'react';
-import { Crown, Star, Building } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import PricingCard from './PricingCard';
 
 const PricingPlans = () => {
-  const { user } = useAuth();
-  const isPro = false; // For now, set to false since we don't have subscription logic
+  const { isSignedIn } = useUser();
 
   const plans = [
     {
-      name: 'Free',
-      price: '₹0',
-      period: '/month',
-      description: 'Basic access for readers',
-      icon: <Star className="w-6 h-6" />,
+      title: "Free",
+      price: "$0",
+      period: "month",
+      description: "Perfect for getting started",
       features: [
-        'Read up to 5 AI-enhanced articles/day',
-        'Bookmark up to 20 articles',
-        'Basic email newsletter',
-        'Ads shown',
-        'No PDF export',
-        'No reuse rights',
-        'No API access'
+        "Access to basic news feed",
+        "Up to 10 bookmarks",
+        "Basic search functionality",
+        "Mobile app access"
       ],
-      current: !isPro,
-      buttonText: 'Current Plan',
-      popular: false
+      buttonText: isSignedIn ? "Current Plan" : "Get Started",
+      buttonVariant: "outline" as const
     },
     {
-      name: 'Pro',
-      price: '₹299',
-      period: '/month',
-      description: 'For content creators and professionals',
-      icon: <Crown className="w-6 h-6" />,
+      title: "Pro",
+      price: "$9.99",
+      period: "month",
+      description: "Best for regular news consumers",
       features: [
-        'Unlimited article access',
-        'PDF export and text download',
-        'Content reuse license',
-        'Watermark-free images',
-        'No ads',
-        'Creator tools dashboard',
-        'Embed tool (simple version)',
-        'Email support'
+        "Unlimited news access",
+        "AI-powered personalization",
+        "Unlimited bookmarks",
+        "Advanced search & filters",
+        "Priority customer support",
+        "Export articles",
+        "Dark mode"
       ],
-      current: isPro,
-      buttonText: isPro ? 'Current Plan' : 'Upgrade to Pro',
-      popular: true
+      popular: true,
+      buttonText: "Upgrade to Pro",
+      buttonVariant: "default" as const
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: '',
-      description: 'For agencies, media companies, large-scale use',
-      icon: <Building className="w-6 h-6" />,
+      title: "Enterprise",
+      price: "$29.99",
+      period: "month",
+      description: "For teams and organizations",
       features: [
-        'Higher content usage limits',
-        'API access for automated workflows',
-        'Real-time embeds',
-        'Multi-user support',
-        'Custom licensing agreements',
-        'Dedicated support'
+        "Everything in Pro",
+        "Team collaboration tools",
+        "API access",
+        "Custom integrations",
+        "Advanced analytics",
+        "Dedicated account manager",
+        "SSO support"
       ],
-      current: false,
-      buttonText: 'Coming Soon',
-      popular: false,
-      comingSoon: true
+      buttonText: "Contact Sales",
+      buttonVariant: "outline" as const
     }
   ];
 
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <section className="py-16 bg-muted/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Choose Your Plan
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Select the perfect plan for your news consumption needs
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
-            <PricingCard key={plan.name} plan={plan} />
+            <PricingCard key={index} {...plan} />
           ))}
         </div>
       </div>

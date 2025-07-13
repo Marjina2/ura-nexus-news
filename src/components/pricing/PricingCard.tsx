@@ -1,84 +1,83 @@
 
 import React from 'react';
-import { Check } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Check, Star } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 
-interface PricingPlan {
-  name: string;
+interface PricingCardProps {
+  title: string;
   price: string;
   period: string;
   description: string;
-  icon: React.ReactNode;
   features: string[];
-  current: boolean;
+  popular?: boolean;
   buttonText: string;
-  popular: boolean;
-  comingSoon?: boolean;
+  buttonVariant?: 'default' | 'outline';
 }
 
-interface PricingCardProps {
-  plan: PricingPlan;
-}
+const PricingCard: React.FC<PricingCardProps> = ({
+  title,
+  price,
+  period,
+  description,
+  features,
+  popular = false,
+  buttonText,
+  buttonVariant = 'default'
+}) => {
+  const { isSignedIn } = useUser();
+  const navigate = useNavigate();
 
-const PricingCard = ({ plan }: PricingCardProps) => {
-  const { user } = useAuth();
+  const handleGetStarted = () => {
+    if (!isSignedIn) {
+      navigate('/auth?redirect=/pricing');
+    } else {
+      // Handle subscription logic here
+      console.log(`Subscribe to ${title} plan`);
+    }
+  };
 
   return (
-    <Card className={`relative ${plan.popular ? 'border-ura-green shadow-2xl scale-105' : 'border-border'} hover-lift`}>
-      {plan.popular && (
+    <Card className={`relative ${popular ? 'border-primary shadow-lg scale-105' : ''}`}>
+      {popular && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-ura-green text-ura-black px-4 py-1">
+          <Badge className="bg-primary text-primary-foreground px-3 py-1">
+            <Star className="w-3 h-3 mr-1" />
             Most Popular
           </Badge>
         </div>
       )}
       
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 p-3 bg-card rounded-full w-fit">
-          {plan.icon}
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-xl font-bold">{title}</CardTitle>
+        <div className="mt-4">
+          <span className="text-4xl font-bold">{price}</span>
+          <span className="text-muted-foreground">/{period}</span>
         </div>
-        <CardTitle className="text-2xl">{plan.name}</CardTitle>
-        <div className="text-3xl font-bold">
-          {plan.price}
-          <span className="text-lg text-muted-foreground">{plan.period}</span>
-        </div>
-        <CardDescription>{plan.description}</CardDescription>
+        <p className="text-sm text-muted-foreground mt-2">{description}</p>
       </CardHeader>
-
-      <CardContent>
+      
+      <CardContent className="space-y-4">
         <ul className="space-y-3">
-          {plan.features.map((feature, featureIndex) => (
-            <li key={featureIndex} className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-ura-green mt-0.5 flex-shrink-0" />
+          {features.map((feature, index) => (
+            <li key={index} className="flex items-center gap-3">
+              <Check className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-sm">{feature}</span>
             </li>
           ))}
         </ul>
+        
+        <Button 
+          className="w-full mt-6" 
+          variant={buttonVariant}
+          onClick={handleGetStarted}
+        >
+          {buttonText}
+        </Button>
       </CardContent>
-
-      <CardFooter>
-        {!user ? (
-          <Button 
-            className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
-            variant={plan.popular ? 'default' : 'outline'}
-            disabled={plan.comingSoon}
-            onClick={() => window.location.href = '/auth'}
-          >
-            {plan.comingSoon ? plan.buttonText : 'Get Started'}
-          </Button>
-        ) : (
-          <Button 
-            className={`w-full ${plan.popular ? 'bg-ura-green text-ura-black hover:bg-ura-green-hover' : ''}`}
-            variant={plan.current ? 'secondary' : plan.popular ? 'default' : 'outline'}
-            disabled={plan.current || plan.comingSoon}
-          >
-            {plan.buttonText}
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 };
