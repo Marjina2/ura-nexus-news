@@ -10,37 +10,35 @@ import NewsGrid from '@/components/news/NewsGrid';
 import NewsLoadingGrid from '@/components/news/NewsLoadingGrid';
 import NewsErrorState from '@/components/news/NewsErrorState';
 import NewsEmptyState from '@/components/news/NewsEmptyState';
-import { useNewsOperations } from '@/hooks/useNewsOperations';
+import { useAutoNewsFetcher } from '@/hooks/useAutoNewsFetcher';
+import { formatDistanceToNow } from 'date-fns';
 
 const News = () => {
   const { isSignedIn, isLoaded } = useUser();
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const {
     articles,
-    loading,
+    isLoading,
     error,
-    totalPages,
-    refreshNews,
-    handleCategoryChange,
-    handleSearch
-  } = useNewsOperations({
-    category: selectedCategory,
-    page: currentPage,
-    searchQuery
-  });
+    currentPage,
+    totalCount,
+    hasMore,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    fetchNewArticles,
+    refetch
+  } = useAutoNewsFetcher(selectedCategory);
+
+  const categories = ['all', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
   useEffect(() => {
-    handleCategoryChange(selectedCategory);
-  }, [selectedCategory, handleCategoryChange]);
-
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch(searchQuery);
+    // Auto-refetch when category changes
+    if (selectedCategory) {
+      refetch();
     }
-  }, [searchQuery, handleSearch]);
+  }, [selectedCategory, refetch]);
 
   if (!isLoaded) {
     return (
@@ -59,9 +57,16 @@ const News = () => {
     window.history.back();
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleArticleClick = (article: any) => {
+    const articleData = encodeURIComponent(JSON.stringify(article));
+    window.location.href = `/article?data=${articleData}`;
   };
+
+  const formatDate = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  const totalPages = Math.ceil(totalCount / 10);
 
   return (
     <div className="min-h-screen bg-ura-black">
@@ -73,34 +78,30 @@ const News = () => {
           
           <NewsFilters
             selectedCategory={selectedCategory}
+            categories={categories}
             onCategoryChange={setSelectedCategory}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onRefresh={refreshNews}
           />
 
-          {loading && <NewsLoadingGrid />}
+          {isLoading && <NewsLoadingGrid />}
           
           {error && (
             <NewsErrorState 
-              error={error} 
-              onRetry={refreshNews} 
+              error={error.message || 'An error occurred'} 
+              onRetry={fetchNewArticles} 
             />
           )}
           
-          {!loading && !error && articles.length === 0 && (
+          {!isLoading && !error && articles.length === 0 && (
             <NewsEmptyState 
-              searchQuery={searchQuery}
               category={selectedCategory}
             />
           )}
           
-          {!loading && !error && articles.length > 0 && (
+          {!isLoading && !error && articles.length > 0 && (
             <NewsGrid
               articles={articles}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
+              onArticleClick={handleArticleClick}
+              formatDate={formatDate}
             />
           )}
         </div>

@@ -6,17 +6,15 @@ import { Filter } from 'lucide-react';
 
 interface NewsFiltersProps {
   selectedCategory: string;
-  selectedCountry: string;
   categories: string[];
   onCategoryChange: (category: string) => void;
-  onCountryChange: (country: string) => void;
 }
 
 const NewsFilters = ({
   selectedCategory,
   categories,
   onCategoryChange,
-}: Omit<NewsFiltersProps, 'selectedCountry' | 'onCountryChange'>) => {
+}: NewsFiltersProps) => {
   return (
     <div className="scroll-fade-in bg-card/20 backdrop-blur-sm border border-border rounded-lg p-6 mb-8">
       <div className="flex items-center gap-4 mb-4">

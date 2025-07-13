@@ -10,14 +10,14 @@ import { formatDistanceToNow } from 'date-fns';
 
 const NewsFeed = () => {
   const { isSignedIn } = useUser();
-  const { articles, loading, error, fetchNews } = useNews();
+  const { articles, isLoading, error, refetch } = useNews();
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
 
   useEffect(() => {
     if (isSignedIn) {
-      fetchNews();
+      refetch();
     }
-  }, [isSignedIn, fetchNews]);
+  }, [isSignedIn, refetch]);
 
   const handleBookmark = (articleUrl: string) => {
     setBookmarkedArticles(prev => 
@@ -52,7 +52,7 @@ const NewsFeed = () => {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         {[...Array(5)].map((_, i) => (
@@ -77,8 +77,8 @@ const NewsFeed = () => {
         <h3 className="text-xl font-semibold text-destructive mb-4">
           Error Loading News
         </h3>
-        <p className="text-muted-foreground mb-4">{error}</p>
-        <Button onClick={fetchNews}>Try Again</Button>
+        <p className="text-muted-foreground mb-4">{error.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
       </div>
     );
   }

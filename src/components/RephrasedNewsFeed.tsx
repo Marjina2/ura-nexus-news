@@ -7,13 +7,13 @@ import { useRephrasedNews } from '@/hooks/useRephrasedNews';
 
 const RephrasedNewsFeed = () => {
   const { isSignedIn } = useUser();
-  const { articles, loading, error, fetchNews } = useRephrasedNews();
+  const { articles, isLoading, error, refetch } = useRephrasedNews();
 
   useEffect(() => {
     if (isSignedIn) {
-      fetchNews();
+      refetch();
     }
-  }, [isSignedIn, fetchNews]);
+  }, [isSignedIn, refetch]);
 
   if (!isSignedIn) {
     return (
@@ -25,7 +25,7 @@ const RephrasedNewsFeed = () => {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         {[...Array(3)].map((_, i) => (
@@ -46,8 +46,8 @@ const RephrasedNewsFeed = () => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-destructive mb-4">{error}</p>
-        <Button onClick={fetchNews}>Try Again</Button>
+        <p className="text-destructive mb-4">{error.message}</p>
+        <Button onClick={() => refetch()}>Try Again</Button>
       </div>
     );
   }
