@@ -183,7 +183,7 @@
     animation-delay: calc(var(--animation-order, 0) * 0.1s);
   }
 
-  /* Clerk custom styles */
+  /* Enhanced Clerk custom styles */
   .clerk-auth-container .cl-formButtonPrimary {
     background-color: #00ff9d !important;
     color: #0a0a0a !important;
@@ -215,5 +215,33 @@
 
   .clerk-auth-container .cl-footerActionLink:hover {
     color: #00e68a !important;
+  }
+
+  /* Remove white backgrounds from Clerk footer elements */
+  .clerk-auth-container .cl-footer {
+    background-color: transparent !important;
+  }
+
+  .clerk-auth-container .cl-footerPages {
+    background-color: transparent !important;
+  }
+
+  .clerk-auth-container .cl-footerActionText {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .clerk-auth-container .cl-modalContent {
+    background-color: transparent !important;
+  }
+
+  .clerk-auth-container .cl-modalCloseButton {
+    color: #ffffffde !important;
+  }
+
+  /* Additional overrides for any remaining white elements */
+  .clerk-auth-container [style*="background-color: white"],
+  .clerk-auth-container [style*="background-color: #fff"],
+  .clerk-auth-container [style*="background-color: #ffffff"] {
+    background-color: transparent !important;
   }
 }

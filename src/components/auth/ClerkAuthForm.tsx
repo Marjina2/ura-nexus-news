@@ -61,6 +61,11 @@ const ClerkAuthForm = () => {
                       footerActionLink: "text-ura-green hover:text-ura-green-hover",
                       identityPreviewText: "text-ura-white",
                       identityPreviewEditButton: "text-ura-green hover:text-ura-green-hover",
+                      footer: "bg-transparent",
+                      footerPages: "bg-transparent",
+                      footerActionText: "text-muted-foreground",
+                      modalContent: "bg-transparent",
+                      modalCloseButton: "text-ura-white",
                     }
                   }}
                   fallbackRedirectUrl="/"
@@ -80,6 +85,11 @@ const ClerkAuthForm = () => {
                       footerActionLink: "text-ura-green hover:text-ura-green-hover",
                       identityPreviewText: "text-ura-white",
                       identityPreviewEditButton: "text-ura-green hover:text-ura-green-hover",
+                      footer: "bg-transparent",
+                      footerPages: "bg-transparent", 
+                      footerActionText: "text-muted-foreground",
+                      modalContent: "bg-transparent",
+                      modalCloseButton: "text-ura-white",
                     }
                   }}
                   fallbackRedirectUrl="/"
