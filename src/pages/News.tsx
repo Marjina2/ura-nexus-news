@@ -86,14 +86,14 @@ const News = () => {
           
           {error && (
             <NewsErrorState 
-              error={error.message || 'An error occurred'} 
+              error={error instanceof Error ? error.message : 'An error occurred'} 
               onRetry={fetchNewArticles} 
             />
           )}
           
           {!isLoading && !error && articles.length === 0 && (
             <NewsEmptyState 
-              category={selectedCategory}
+              message={`No news articles found for ${selectedCategory === 'all' ? 'all categories' : selectedCategory}.`}
             />
           )}
           
