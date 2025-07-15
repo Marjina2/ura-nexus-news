@@ -203,8 +203,12 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          connected_devices: Json | null
           country: string
           created_at: string | null
+          email_verification_sent_at: string | null
+          email_verification_token: string | null
+          email_verified: boolean | null
           full_name: string | null
           id: string
           is_verified: boolean | null
@@ -217,8 +221,12 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          connected_devices?: Json | null
           country: string
           created_at?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id: string
           is_verified?: boolean | null
@@ -231,8 +239,12 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          connected_devices?: Json | null
           country?: string
           created_at?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id?: string
           is_verified?: boolean | null
