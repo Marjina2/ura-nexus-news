@@ -68,6 +68,7 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
+                  redirectUrl={window.location.origin}
                   fallbackRedirectUrl="/"
                 />
               ) : (
@@ -92,6 +93,7 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
+                  redirectUrl={window.location.origin}
                   fallbackRedirectUrl="/"
                 />
               )}
