@@ -25,7 +25,7 @@ const Auth = () => {
     return <Navigate to={redirectPath} replace />;
   }
 
-  return <ClerkAuthForm />;
+  return <ClerkAuthForm redirectPath={redirectPath} />;
 };
 
 export default Auth;

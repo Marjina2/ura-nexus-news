@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ClerkAuthForm = () => {
+const ClerkAuthForm = ({ redirectPath = '/news' }: { redirectPath?: string }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
 
   if (isSignedIn) {
-    navigate('/news');
+    navigate(redirectPath);
     return null;
   }
 
@@ -68,8 +68,8 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
-                  redirectUrl={window.location.origin + "/news"}
-                  fallbackRedirectUrl="/news"
+                  redirectUrl={window.location.origin + redirectPath}
+                  fallbackRedirectUrl={redirectPath}
                 />
               ) : (
                 <SignIn 
@@ -93,8 +93,8 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
-                  redirectUrl={window.location.origin + "/news"}
-                  fallbackRedirectUrl="/news"
+                  redirectUrl={window.location.origin + redirectPath}
+                  fallbackRedirectUrl={redirectPath}
                 />
               )}
             </div>
