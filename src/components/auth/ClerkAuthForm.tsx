@@ -12,7 +12,7 @@ const ClerkAuthForm = () => {
   const navigate = useNavigate();
 
   if (isSignedIn) {
-    navigate('/');
+    navigate('/news');
     return null;
   }
 
@@ -68,8 +68,8 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
-                  redirectUrl={window.location.origin}
-                  fallbackRedirectUrl="/"
+                  redirectUrl={window.location.origin + "/news"}
+                  fallbackRedirectUrl="/news"
                 />
               ) : (
                 <SignIn 
@@ -93,8 +93,8 @@ const ClerkAuthForm = () => {
                       modalCloseButton: "text-ura-white",
                     }
                   }}
-                  redirectUrl={window.location.origin}
-                  fallbackRedirectUrl="/"
+                  redirectUrl={window.location.origin + "/news"}
+                  fallbackRedirectUrl="/news"
                 />
               )}
             </div>
