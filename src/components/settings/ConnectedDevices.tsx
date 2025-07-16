@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Smartphone, Monitor, Tablet, Trash2, MapPin, Clock, Plus } from 'lucide-react';
+import { Smartphone, Monitor, Tablet, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@clerk/clerk-react';
 
 interface DeviceInfo {
   id: string;
@@ -20,8 +18,7 @@ interface DeviceInfo {
 }
 
 const ConnectedDevices = () => {
-  const { profile, removeConnectedDevice, addConnectedDevice } = useUserProfile();
-  const { toast } = useToast();
+  const { user, isLoaded } = useUser();
   const [currentDevice, setCurrentDevice] = useState<DeviceInfo | null>(null);
 
   useEffect(() => {
@@ -74,35 +71,6 @@ const ConnectedDevices = () => {
     });
   }, []);
 
-  const handleRemoveDevice = async (deviceId: string) => {
-    const success = await removeConnectedDevice(deviceId);
-    if (success) {
-      toast({
-        title: "Device Removed",
-        description: "The device has been disconnected from your account"
-      });
-    }
-  };
-
-  const handleAddCurrentDevice = async () => {
-    if (currentDevice) {
-      const success = await addConnectedDevice({
-        name: currentDevice.name,
-        type: currentDevice.type,
-        browser: currentDevice.browser,
-        os: currentDevice.os,
-        last_active: currentDevice.last_active,
-        is_current: true
-      });
-      
-      if (success) {
-        toast({
-          title: "Device Added",
-          description: "Current device has been registered"
-        });
-      }
-    }
-  };
 
   const getDeviceIcon = (type: string) => {
     switch (type) {
@@ -125,7 +93,7 @@ const ConnectedDevices = () => {
     return `${Math.floor(diffInHours / 24)}d ago`;
   };
 
-  const devices = Array.isArray(profile?.connected_devices) ? (profile.connected_devices as unknown as DeviceInfo[]) : [];
+  // For now, just show current device since Clerk doesn't provide device management
 
   return (
     <Card>
@@ -142,107 +110,37 @@ const ConnectedDevices = () => {
         {/* Current Device */}
         {currentDevice && (
           <div className="p-4 bg-ura-green/10 border border-ura-green/20 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="text-ura-green">
-                  {getDeviceIcon(currentDevice.type)}
-                </div>
-                <div>
-                  <h4 className="font-medium text-ura-white">{currentDevice.name}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {currentDevice.browser} on {currentDevice.os}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="default" className="bg-ura-green/20 text-ura-green border-ura-green/20">
-                      Current Device
-                    </Badge>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Active now
-                    </span>
-                  </div>
+            <div className="flex items-center gap-3">
+              <div className="text-ura-green">
+                {getDeviceIcon(currentDevice.type)}
+              </div>
+              <div>
+                <h4 className="font-medium text-ura-white">{currentDevice.name}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {currentDevice.browser} on {currentDevice.os}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="default" className="bg-ura-green/20 text-ura-green border-ura-green/20">
+                    Current Device
+                  </Badge>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Active now
+                  </span>
                 </div>
               </div>
-              {!devices.some((d: any) => d?.is_current) && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleAddCurrentDevice}
-                  className="border-ura-green/20 text-ura-green hover:bg-ura-green/10"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Register
-                </Button>
-              )}
             </div>
           </div>
         )}
 
-        {/* Connected Devices */}
-        {devices.length > 0 ? (
-          <div className="space-y-3">
-            {devices.map((device: any, index: number) => (
-              <div key={device?.id || index} className="p-4 bg-card/50 border border-border/50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="text-muted-foreground">
-                      {getDeviceIcon(device?.type || 'desktop')}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-ura-white">{device?.name || 'Unknown Device'}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {device?.browser || 'Unknown'} on {device?.os || 'Unknown'}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatLastActive(device?.last_active || new Date().toISOString())}
-                        </span>
-                        {device?.location && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {device.location}
-                          </span>
-                        )}
-                        {device?.is_current && (
-                          <Badge variant="default" className="bg-ura-green/20 text-ura-green border-ura-green/20">
-                            Current
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {!device?.is_current && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleRemoveDevice(device?.id || '')}
-                      className="text-red-400 border-red-400/20 hover:bg-red-400/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <Monitor className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="font-medium text-ura-white mb-1">No Connected Devices</h3>
-            <p className="text-sm text-muted-foreground">
-              Devices you sign in with will appear here
-            </p>
-          </div>
-        )}
-
-        {devices.length > 0 && (
-          <div className="pt-4 border-t border-border/50">
-            <p className="text-xs text-muted-foreground">
-              Remove devices you don't recognize or no longer use to keep your account secure.
-            </p>
-          </div>
-        )}
+        {/* Info about device management */}
+        <div className="text-center py-8 border border-border/30 rounded-lg bg-card/20">
+          <Monitor className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-medium text-ura-white mb-1">Device Management</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Your current device is shown above. For comprehensive device management, including viewing and removing other devices, please visit your Clerk account settings.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

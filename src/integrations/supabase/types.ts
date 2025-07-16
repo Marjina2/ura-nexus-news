@@ -169,34 +169,102 @@ export type Database = {
       }
       news_articles: {
         Row: {
+          author: string | null
+          category: string | null
           created_at: string
+          excerpt: string | null
           full_content: string | null
           id: string
           image_url: string | null
           original_title: string
+          original_url: string | null
+          published_at: string | null
+          region: string | null
+          rephrased_at: string | null
           rephrased_title: string | null
+          scraped_at: string | null
+          source_id: number | null
+          source_name: string
           source_url: string | null
+          status: string | null
           summary: string | null
         }
         Insert: {
+          author?: string | null
+          category?: string | null
           created_at?: string
+          excerpt?: string | null
           full_content?: string | null
           id?: string
           image_url?: string | null
           original_title: string
+          original_url?: string | null
+          published_at?: string | null
+          region?: string | null
+          rephrased_at?: string | null
           rephrased_title?: string | null
+          scraped_at?: string | null
+          source_id?: number | null
+          source_name?: string
           source_url?: string | null
+          status?: string | null
           summary?: string | null
         }
         Update: {
+          author?: string | null
+          category?: string | null
           created_at?: string
+          excerpt?: string | null
           full_content?: string | null
           id?: string
           image_url?: string | null
           original_title?: string
+          original_url?: string | null
+          published_at?: string | null
+          region?: string | null
+          rephrased_at?: string | null
           rephrased_title?: string | null
+          scraped_at?: string | null
+          source_id?: number | null
+          source_name?: string
           source_url?: string | null
+          status?: string | null
           summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_articles_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "news_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_sources: {
+        Row: {
+          created_at: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          url?: string
         }
         Relationships: []
       }
@@ -299,6 +367,33 @@ export type Database = {
           updated_at?: string
           url?: string
           view_count?: number | null
+        }
+        Relationships: []
+      }
+      scraper_config: {
+        Row: {
+          created_at: string | null
+          id: number
+          interval_minutes: number | null
+          is_active: boolean | null
+          last_run_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          interval_minutes?: number | null
+          is_active?: boolean | null
+          last_run_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          interval_minutes?: number | null
+          is_active?: boolean | null
+          last_run_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

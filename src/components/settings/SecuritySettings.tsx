@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Shield, Mail, Key, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { useUser } from '@clerk/clerk-react';
+import { useToast } from '@/hooks/use-toast';
 
 const SecuritySettings = () => {
-  const { user } = useUser();
-  const { profile, sendEmailVerification } = useUserProfile();
+  const { user, isLoaded } = useUser();
+  const { toast } = useToast();
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const securityFeatures = [
     {
@@ -16,23 +17,23 @@ const SecuritySettings = () => {
       title: 'Email Verification',
       description: 'Verify your email address to secure your account',
       icon: <Mail className="w-5 h-5" />,
-      status: profile?.email_verified ? 'enabled' : 'disabled',
-      action: profile?.email_verified ? null : 'verify'
+      status: user?.primaryEmailAddress?.verification?.status === 'verified' ? 'enabled' : 'disabled',
+      action: user?.primaryEmailAddress?.verification?.status === 'verified' ? null : 'verify'
     },
     {
       id: 'two_factor',
       title: 'Two-Factor Authentication',
       description: 'Add an extra layer of security with 2FA',
       icon: <Shield className="w-5 h-5" />,
-      status: 'disabled', // This would come from Clerk or your implementation
-      action: 'enable'
+      status: user?.twoFactorEnabled ? 'enabled' : 'disabled',
+      action: user?.twoFactorEnabled ? 'disable' : 'enable'
     },
     {
       id: 'password_strength',
-      title: 'Strong Password',
-      description: 'Use a strong, unique password for your account',
+      title: 'Change Password',
+      description: 'Update your password to keep your account secure',
       icon: <Key className="w-5 h-5" />,
-      status: 'enabled', // This would be checked based on password policies
+      status: 'enabled',
       action: 'change'
     }
   ];
@@ -58,6 +59,51 @@ const SecuritySettings = () => {
     }
   };
 
+  const handleSendVerification = async () => {
+    if (!user || !user.primaryEmailAddress) return;
+    
+    try {
+      await user.primaryEmailAddress.prepareVerification({ 
+        strategy: 'email_link',
+        redirectUrl: window.location.href
+      });
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your email for the verification link"
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send verification email",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!user) return;
+    
+    setIsChangingPassword(true);
+    try {
+      // Use window.location to redirect to Clerk's password reset
+      window.open(`${window.location.origin}/sign-in#/factor-one`, '_blank');
+      toast({
+        title: "Redirecting to Password Change",
+        description: "You'll be redirected to change your password"
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast({
+        title: "Error",
+        description: "Failed to initiate password change",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   const getActionButton = (feature: any) => {
     switch (feature.action) {
       case 'verify':
@@ -65,7 +111,7 @@ const SecuritySettings = () => {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={sendEmailVerification}
+            onClick={handleSendVerification}
             className="border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/10"
           >
             Send Verification
@@ -76,9 +122,10 @@ const SecuritySettings = () => {
           <Button 
             variant="outline" 
             size="sm"
+            disabled={true}
             className="border-ura-green/20 text-ura-green hover:bg-ura-green/10"
           >
-            Enable
+            Coming Soon
           </Button>
         );
       case 'change':
@@ -86,9 +133,11 @@ const SecuritySettings = () => {
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleChangePassword}
+            disabled={isChangingPassword}
             className="border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
           >
-            Change Password
+            {isChangingPassword ? 'Sending...' : 'Change Password'}
           </Button>
         );
       default:
@@ -108,31 +157,6 @@ const SecuritySettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Account Security Overview */}
-        <div className="p-4 bg-card/50 border border-border/50 rounded-lg">
-          <div className="flex items-center gap-3 mb-3">
-            <Shield className="w-6 h-6 text-ura-green" />
-            <div>
-              <h4 className="font-medium text-ura-white">Account Security Score</h4>
-              <p className="text-sm text-muted-foreground">
-                Your account security level
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-background rounded-full h-2">
-              <div 
-                className="bg-ura-green h-2 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${(securityFeatures.filter(f => f.status === 'enabled').length / securityFeatures.length) * 100}%` 
-                }}
-              />
-            </div>
-            <span className="text-sm font-medium text-ura-white">
-              {Math.round((securityFeatures.filter(f => f.status === 'enabled').length / securityFeatures.length) * 100)}%
-            </span>
-          </div>
-        </div>
 
         {/* Security Features */}
         <div className="space-y-3">
@@ -180,11 +204,11 @@ const SecuritySettings = () => {
                 </span>
               </div>
             )}
-            {profile?.updated_at && (
+            {user?.updatedAt && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Profile updated</span>
                 <span className="text-ura-white">
-                  {new Date(profile.updated_at).toLocaleDateString()}
+                  {new Date(user.updatedAt).toLocaleDateString()}
                 </span>
               </div>
             )}

@@ -4,45 +4,42 @@ import { User, Camera, Check, X, Mail, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { useUser } from '@clerk/clerk-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileFormData {
+  firstName: string;
+  lastName: string;
   username: string;
-  full_name: string;
-  phone_number: string;
-  country: string;
 }
 
 const ProfileSettings = () => {
-  const { user } = useUser();
-  const { profile, updating, updateProfile, sendEmailVerification } = useUserProfile();
+  const { user, isLoaded } = useUser();
+  const { toast } = useToast();
+  const [updating, setUpdating] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const form = useForm<ProfileFormData>({
     defaultValues: {
-      username: profile?.username || '',
-      full_name: profile?.full_name || '',
-      phone_number: profile?.phone_number || '',
-      country: profile?.country || ''
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      username: user?.username || '',
     }
   });
 
-  // Update form when profile loads
+  // Update form when user loads
   React.useEffect(() => {
-    if (profile) {
+    if (user && isLoaded) {
       form.reset({
-        username: profile.username,
-        full_name: profile.full_name || '',
-        phone_number: profile.phone_number || '',
-        country: profile.country
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        username: user.username || '',
       });
     }
-  }, [profile, form]);
+  }, [user, isLoaded, form]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,14 +54,55 @@ const ProfileSettings = () => {
   };
 
   const onSubmit = async (data: ProfileFormData) => {
-    await updateProfile(data);
+    if (!user) return;
+    
+    setUpdating(true);
+    try {
+      await user.update({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username,
+      });
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully"
+      });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleSendVerification = async () => {
-    await sendEmailVerification();
+    if (!user || !user.primaryEmailAddress) return;
+    
+    try {
+      await user.primaryEmailAddress.prepareVerification({ 
+        strategy: 'email_link',
+        redirectUrl: window.location.href
+      });
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your email for the verification link"
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send verification email",
+        variant: "destructive"
+      });
+    }
   };
 
-  if (!profile) {
+  if (!isLoaded || !user) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -98,9 +136,9 @@ const ProfileSettings = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                {avatarPreview || profile.avatar_url ? (
+                {avatarPreview || user.imageUrl ? (
                   <img 
-                    src={avatarPreview || profile.avatar_url} 
+                    src={avatarPreview || user.imageUrl} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
@@ -119,10 +157,10 @@ const ProfileSettings = () => {
               </label>
             </div>
             <div>
-              <h3 className="font-semibold text-ura-white">{profile.full_name || profile.username}</h3>
-              <p className="text-sm text-muted-foreground">{user?.primaryEmailAddress?.emailAddress}</p>
+              <h3 className="font-semibold text-ura-white">{user.fullName || user.username}</h3>
+              <p className="text-sm text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</p>
               <div className="flex items-center gap-2 mt-1">
-                {profile.email_verified ? (
+                {user.primaryEmailAddress?.verification?.status === 'verified' ? (
                   <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/20">
                     <Check className="w-3 h-3 mr-1" />
                     Email Verified
@@ -133,18 +171,12 @@ const ProfileSettings = () => {
                     Email Not Verified
                   </Badge>
                 )}
-                {profile.is_verified && (
-                  <Badge variant="default" className="bg-blue-500/20 text-blue-400 border-blue-500/20">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Verified Account
-                  </Badge>
-                )}
               </div>
             </div>
           </div>
 
           {/* Email Verification */}
-          {!profile.email_verified && (
+          {user.primaryEmailAddress?.verification?.status !== 'verified' && (
             <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -172,6 +204,42 @@ const ProfileSettings = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-ura-white">First Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="bg-background/50 border-border/50 text-ura-white"
+                          placeholder="Enter first name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-ura-white">Last Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="bg-background/50 border-border/50 text-ura-white"
+                          placeholder="Enter last name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
@@ -181,61 +249,6 @@ const ProfileSettings = () => {
                           {...field} 
                           className="bg-background/50 border-border/50 text-ura-white"
                           placeholder="Enter username"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="full_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-ura-white">Full Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter full name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-ura-white">Phone Number</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter phone number"
-                          type="tel"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-ura-white">Country</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter country"
                         />
                       </FormControl>
                       <FormMessage />
