@@ -11,14 +11,18 @@ const SecuritySettings = () => {
   const { toast } = useToast();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Check if user signed up with Google (external account)
+  const isGoogleUser = user?.externalAccounts?.some(account => account.provider === 'google');
+  const isEmailVerified = isGoogleUser || user?.primaryEmailAddress?.verification?.status === 'verified';
+
   const securityFeatures = [
     {
       id: 'email_verification',
       title: 'Email Verification',
       description: 'Verify your email address to secure your account',
       icon: <Mail className="w-5 h-5" />,
-      status: user?.primaryEmailAddress?.verification?.status === 'verified' ? 'enabled' : 'disabled',
-      action: user?.primaryEmailAddress?.verification?.status === 'verified' ? null : 'verify'
+      status: isEmailVerified ? 'enabled' : 'disabled',
+      action: isEmailVerified ? null : 'verify'
     },
     {
       id: 'two_factor',
@@ -33,8 +37,8 @@ const SecuritySettings = () => {
       title: 'Change Password',
       description: 'Update your password to keep your account secure',
       icon: <Key className="w-5 h-5" />,
-      status: 'enabled',
-      action: 'change'
+      status: isGoogleUser ? 'not_applicable' : 'enabled',
+      action: isGoogleUser ? null : 'change'
     }
   ];
 
@@ -54,13 +58,26 @@ const SecuritySettings = () => {
             Disabled
           </Badge>
         );
+      case 'not_applicable':
+        return (
+          <Badge variant="outline" className="bg-muted/20 text-muted-foreground border-muted/20">
+            Not Applicable
+          </Badge>
+        );
       default:
         return null;
     }
   };
 
   const handleSendVerification = async () => {
-    if (!user || !user.primaryEmailAddress) return;
+    if (!user || !user.primaryEmailAddress || isGoogleUser) {
+      toast({
+        title: "Verification Not Needed",
+        description: "Your email is already verified through your account provider",
+        variant: "default"
+      });
+      return;
+    }
     
     try {
       await user.primaryEmailAddress.prepareVerification({ 
@@ -82,21 +99,24 @@ const SecuritySettings = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!user) return;
+    if (!user || isGoogleUser) {
+      toast({
+        title: "Password Change Not Available",
+        description: "Password changes are managed through your Google account",
+        variant: "default"
+      });
+      return;
+    }
     
     setIsChangingPassword(true);
     try {
-      // Use window.location to redirect to Clerk's password reset
-      window.open(`${window.location.origin}/sign-in#/factor-one`, '_blank');
-      toast({
-        title: "Redirecting to Password Change",
-        description: "You'll be redirected to change your password"
-      });
+      // Navigate to Clerk's user profile for password change
+      window.location.href = '/user-profile';
     } catch (error) {
       console.error('Error changing password:', error);
       toast({
         title: "Error",
-        description: "Failed to initiate password change",
+        description: "Failed to navigate to password change",
         variant: "destructive"
       });
     } finally {

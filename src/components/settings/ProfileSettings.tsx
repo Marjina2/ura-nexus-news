@@ -19,8 +19,10 @@ const ProfileSettings = () => {
   const { user, isLoaded } = useUser();
   const { toast } = useToast();
   const [updating, setUpdating] = useState(false);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  // Check if user signed up with Google (external account)
+  const isGoogleUser = user?.externalAccounts?.some(account => account.provider === 'google');
+  const isEmailVerified = isGoogleUser || user?.primaryEmailAddress?.verification?.status === 'verified';
 
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -42,46 +44,32 @@ const ProfileSettings = () => {
   }, [user, isLoaded, form]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    // Avatar changes are disabled - show info message
+    toast({
+      title: "Avatar Update Disabled",
+      description: "Profile picture updates are managed through your account provider",
+      variant: "default"
+    });
   };
 
   const onSubmit = async (data: ProfileFormData) => {
-    if (!user) return;
-    
-    setUpdating(true);
-    try {
-      await user.update({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        username: data.username,
-      });
-      
-      toast({
-        title: "Success",
-        description: "Profile updated successfully"
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive"
-      });
-    } finally {
-      setUpdating(false);
-    }
+    // Profile updates are disabled - show info message
+    toast({
+      title: "Profile Update Disabled", 
+      description: "Profile information is managed through your account provider and cannot be changed here",
+      variant: "default"
+    });
   };
 
   const handleSendVerification = async () => {
-    if (!user || !user.primaryEmailAddress) return;
+    if (!user || !user.primaryEmailAddress || isGoogleUser) {
+      toast({
+        title: "Verification Not Needed",
+        description: "Your email is already verified through your account provider",
+        variant: "default"
+      });
+      return;
+    }
     
     try {
       await user.primaryEmailAddress.prepareVerification({ 
@@ -134,11 +122,11 @@ const ProfileSettings = () => {
         <CardContent className="space-y-6">
           {/* Avatar Section */}
           <div className="flex items-center gap-4">
-            <div className="relative">
+            <div className="relative opacity-75">
               <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                {avatarPreview || user.imageUrl ? (
+                {user.imageUrl ? (
                   <img 
-                    src={avatarPreview || user.imageUrl} 
+                    src={user.imageUrl} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
@@ -146,21 +134,15 @@ const ProfileSettings = () => {
                   <User className="w-8 h-8 text-muted-foreground" />
                 )}
               </div>
-              <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-ura-green rounded-full flex items-center justify-center cursor-pointer hover:bg-ura-green/80 transition-colors">
-                <Camera className="w-4 h-4 text-ura-black" />
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handleAvatarChange}
-                />
-              </label>
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-muted rounded-full flex items-center justify-center opacity-50">
+                <Camera className="w-4 h-4 text-muted-foreground" />
+              </div>
             </div>
             <div>
               <h3 className="font-semibold text-ura-white">{user.fullName || user.username}</h3>
               <p className="text-sm text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</p>
               <div className="flex items-center gap-2 mt-1">
-                {user.primaryEmailAddress?.verification?.status === 'verified' ? (
+                {isEmailVerified ? (
                   <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/20">
                     <Check className="w-3 h-3 mr-1" />
                     Email Verified
@@ -176,7 +158,7 @@ const ProfileSettings = () => {
           </div>
 
           {/* Email Verification */}
-          {user.primaryEmailAddress?.verification?.status !== 'verified' && (
+          {!isEmailVerified && !isGoogleUser && (
             <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -198,6 +180,17 @@ const ProfileSettings = () => {
             </div>
           )}
 
+          {/* Read-only notice */}
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-400" />
+              <div>
+                <p className="text-sm font-medium text-blue-400">Profile Information</p>
+                <p className="text-xs text-blue-400/80">Your profile is managed by your account provider and cannot be edited here</p>
+              </div>
+            </div>
+          </div>
+
           {/* Profile Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -211,8 +204,9 @@ const ProfileSettings = () => {
                       <FormControl>
                         <Input 
                           {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter first name"
+                          disabled
+                          className="bg-background/30 border-border/30 text-ura-white opacity-75 cursor-not-allowed"
+                          placeholder="First name managed by provider"
                         />
                       </FormControl>
                       <FormMessage />
@@ -229,8 +223,9 @@ const ProfileSettings = () => {
                       <FormControl>
                         <Input 
                           {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter last name"
+                          disabled
+                          className="bg-background/30 border-border/30 text-ura-white opacity-75 cursor-not-allowed"
+                          placeholder="Last name managed by provider"
                         />
                       </FormControl>
                       <FormMessage />
@@ -247,8 +242,9 @@ const ProfileSettings = () => {
                       <FormControl>
                         <Input 
                           {...field} 
-                          className="bg-background/50 border-border/50 text-ura-white"
-                          placeholder="Enter username"
+                          disabled
+                          className="bg-background/30 border-border/30 text-ura-white opacity-75 cursor-not-allowed"
+                          placeholder="Username managed by provider"
                         />
                       </FormControl>
                       <FormMessage />
@@ -258,11 +254,11 @@ const ProfileSettings = () => {
               </div>
 
               <Button 
-                type="submit" 
-                disabled={updating}
-                className="bg-ura-green text-ura-black hover:bg-ura-green/80"
+                type="button" 
+                disabled
+                className="bg-muted text-muted-foreground cursor-not-allowed"
               >
-                {updating ? 'Updating...' : 'Update Profile'}
+                Profile Managed by Provider
               </Button>
             </form>
           </Form>
