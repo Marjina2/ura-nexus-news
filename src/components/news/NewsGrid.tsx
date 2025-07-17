@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, ExternalLink } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { NewsArticleData } from '@/types/news';
 
 interface NewsGridProps {
@@ -17,7 +16,7 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleClick, formatDat
       {articles.map((article) => (
         <Card 
           key={article.id}
-          className="bg-card border-border overflow-hidden hover:border-ura-green/50 transition-all duration-200 cursor-pointer group"
+          className="bg-card border-border overflow-hidden cursor-pointer"
           onClick={() => onArticleClick(article)}
         >
           {article.image_url && (
@@ -25,17 +24,12 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleClick, formatDat
               <img
                 src={article.image_url}
                 alt={article.rephrased_title || article.original_title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute top-3 left-3">
-                <Badge variant="secondary" className="bg-ura-green/90 text-ura-black font-medium">
-                  Fresh
-                </Badge>
-              </div>
             </div>
           )}
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2 group-hover:text-ura-green transition-colors">
+            <h3 className="text-lg font-semibold text-ura-white mb-2 line-clamp-2">
               {article.rephrased_title || article.original_title}
             </h3>
             
@@ -55,8 +49,7 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleClick, formatDat
               </div>
               
               {article.source_name && (
-                <div className="flex items-center gap-1">
-                  <ExternalLink className="w-3 h-3" />
+                <div className="flex items-center">
                   <span>{article.source_name}</span>
                 </div>
               )}

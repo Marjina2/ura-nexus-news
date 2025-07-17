@@ -10,7 +10,7 @@ interface UseNewsDataProps {
 
 export const useNewsData = ({ page = 1, category = 'all' }: UseNewsDataProps = {}) => {
   const [currentPage, setCurrentPage] = useState(page);
-  const articlesPerPage = 20;
+  const articlesPerPage = 21;
   const offset = (currentPage - 1) * articlesPerPage;
 
   const query = useQuery({
