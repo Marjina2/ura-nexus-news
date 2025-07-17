@@ -8,7 +8,7 @@ import { NewsArticleData } from '@/types/news';
 interface NewsGridProps {
   articles: NewsArticleData[];
   onArticleClick: (article: NewsArticleData) => void;
-  formatDate: (dateString: string) => string;
+  formatDate: (dateString: string) => { timeAgo: string; fullDate: string };
 }
 
 const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleClick, formatDate }) => {
@@ -45,16 +45,19 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleClick, formatDat
               </p>
             )}
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex flex-col gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>{formatDate(article.created_at)}</span>
+                <div className="flex flex-col">
+                  <span>{formatDate(article.created_at).timeAgo}</span>
+                  <span className="text-[10px] opacity-75">{formatDate(article.created_at).fullDate}</span>
+                </div>
               </div>
               
-              {article.source_url && (
+              {article.source_name && (
                 <div className="flex items-center gap-1">
                   <ExternalLink className="w-3 h-3" />
-                  <span>Source</span>
+                  <span>{article.source_name}</span>
                 </div>
               )}
             </div>

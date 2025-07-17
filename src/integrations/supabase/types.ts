@@ -373,7 +373,11 @@ export type Database = {
       scraper_config: {
         Row: {
           created_at: string | null
+          enable_categorization: boolean
+          extract_full_content: boolean
           id: number
+          indian_articles_per_source: number
+          international_articles_per_source: number
           interval_minutes: number | null
           is_active: boolean | null
           last_run_at: string | null
@@ -381,7 +385,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          enable_categorization?: boolean
+          extract_full_content?: boolean
           id?: number
+          indian_articles_per_source?: number
+          international_articles_per_source?: number
           interval_minutes?: number | null
           is_active?: boolean | null
           last_run_at?: string | null
@@ -389,7 +397,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          enable_categorization?: boolean
+          extract_full_content?: boolean
           id?: number
+          indian_articles_per_source?: number
+          international_articles_per_source?: number
           interval_minutes?: number | null
           is_active?: boolean | null
           last_run_at?: string | null

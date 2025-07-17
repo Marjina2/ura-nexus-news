@@ -10,8 +10,9 @@ import NewsGrid from '@/components/news/NewsGrid';
 import NewsLoadingGrid from '@/components/news/NewsLoadingGrid';
 import NewsErrorState from '@/components/news/NewsErrorState';
 import NewsEmptyState from '@/components/news/NewsEmptyState';
-import { useAutoNewsFetcher } from '@/hooks/useAutoNewsFetcher';
-import { formatDistanceToNow } from 'date-fns';
+import { useNewsData } from '@/hooks/useNewsData';
+import NewsPagination from '@/components/news/NewsPagination';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const News = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -23,13 +24,14 @@ const News = () => {
     error,
     currentPage,
     totalCount,
+    totalPages,
     hasMore,
+    hasPrevious,
     goToPage,
     goToNextPage,
     goToPreviousPage,
-    fetchNewArticles,
     refetch
-  } = useAutoNewsFetcher(selectedCategory);
+  } = useNewsData({ category: selectedCategory });
 
   const categories = ['all', 'business', 'entertainment', 'health', 'science', 'sports', 'technology'];
 
@@ -63,10 +65,11 @@ const News = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    const date = new Date(dateString);
+    const timeAgo = formatDistanceToNow(date, { addSuffix: true });
+    const fullDate = format(date, 'MMM dd, yyyy • h:mm a');
+    return { timeAgo, fullDate };
   };
-
-  const totalPages = Math.ceil(totalCount / 10);
 
   return (
     <div className="min-h-screen bg-ura-black">
@@ -87,7 +90,7 @@ const News = () => {
           {error && (
             <NewsErrorState 
               error={error instanceof Error ? error.message : 'An error occurred'} 
-              onRetry={fetchNewArticles} 
+              onRetry={() => refetch()} 
             />
           )}
           
@@ -98,11 +101,22 @@ const News = () => {
           )}
           
           {!isLoading && !error && articles.length > 0 && (
-            <NewsGrid
-              articles={articles}
-              onArticleClick={handleArticleClick}
-              formatDate={formatDate}
-            />
+            <>
+              <NewsGrid
+                articles={articles}
+                onArticleClick={handleArticleClick}
+                formatDate={formatDate}
+              />
+              
+              <NewsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                hasMore={hasMore}
+                onPreviousPage={goToPreviousPage}
+                onNextPage={goToNextPage}
+                onGoToPage={goToPage}
+              />
+            </>
           )}
         </div>
       </main>
