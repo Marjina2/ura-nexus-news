@@ -43,7 +43,7 @@ function App() {
                 <AccountSettings />
               </ClerkProtectedRoute>
             } />
-            <Route path="/article" element={<Article />} />
+            <Route path="/article/:id" element={<Article />} />
             <Route path="/news" element={<News />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/ai-picks" element={<AIPicks />} />

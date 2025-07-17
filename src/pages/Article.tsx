@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Navigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EnhancedArticle } from '@/hooks/useNews';
@@ -11,9 +11,10 @@ import Footer from '@/components/Footer';
 import ArticleContent from '@/components/ArticleContent';
 import ArticleHeader from '@/components/article/ArticleHeader';
 import ArticleFooter from '@/components/article/ArticleFooter';
+import { getArticle, cleanupExpiredArticles } from '@/utils/articleStorage';
 
 const Article = () => {
-  const [searchParams] = useSearchParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isSignedIn, isLoaded } = useUser();
   const [article, setArticle] = useState<EnhancedArticle | null>(null);
@@ -33,40 +34,49 @@ const Article = () => {
   } = useArticleOperations();
 
   useEffect(() => {
-    const articleData = searchParams.get('data');
-    if (articleData) {
-      try {
-        const parsedArticle = JSON.parse(decodeURIComponent(articleData));
-        
-        // Ensure we have full content available
-        const enhancedArticle = {
-          ...parsedArticle,
-          // Map the database fields to the expected format
-          full_content: parsedArticle.full_content || parsedArticle.content,
-          content: parsedArticle.full_content || parsedArticle.content || parsedArticle.summary,
-          title: parsedArticle.rephrased_title || parsedArticle.original_title || parsedArticle.title,
-          original_title: parsedArticle.original_title || parsedArticle.title,
-          summary: parsedArticle.summary || parsedArticle.description,
-          source_url: parsedArticle.source_url || parsedArticle.url,
-          image_url: parsedArticle.image_url || parsedArticle.urlToImage,
-          publishedAt: parsedArticle.created_at || parsedArticle.publishedAt
-        };
-        
-        console.log('Enhanced article data:', enhancedArticle);
-        setArticle(enhancedArticle);
-        saveArticleAndIncrementViews(enhancedArticle);
+    // Clean up expired articles on component mount
+    cleanupExpiredArticles();
+    
+    if (!id) {
+      setError('No article ID provided');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const articleData = getArticle(id);
+      
+      if (!articleData) {
+        setError('Article not found or has expired');
         setIsLoading(false);
-        setError(null);
-      } catch (error) {
-        console.error('Error parsing article data:', error);
-        setError('Failed to load article');
-        setIsLoading(false);
+        return;
       }
-    } else {
-      setError('No article data found');
+      
+      // Ensure we have full content available
+      const enhancedArticle = {
+        ...articleData,
+        // Map the database fields to the expected format
+        full_content: articleData.full_content || articleData.content,
+        content: articleData.full_content || articleData.content || articleData.summary,
+        title: articleData.rephrased_title || articleData.original_title || articleData.title,
+        original_title: articleData.original_title || articleData.title,
+        summary: articleData.summary || articleData.description,
+        source_url: articleData.source_url || articleData.url,
+        image_url: articleData.image_url || articleData.urlToImage,
+        publishedAt: articleData.created_at || articleData.publishedAt
+      };
+      
+      console.log('Enhanced article data:', enhancedArticle);
+      setArticle(enhancedArticle);
+      saveArticleAndIncrementViews(enhancedArticle);
+      setIsLoading(false);
+      setError(null);
+    } catch (error) {
+      console.error('Error loading article:', error);
+      setError('Failed to load article');
       setIsLoading(false);
     }
-  }, [searchParams, saveArticleAndIncrementViews]);
+  }, [id, saveArticleAndIncrementViews]);
 
   if (!isLoaded) {
     return (

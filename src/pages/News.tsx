@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsHeader from '@/components/news/NewsHeader';
@@ -13,9 +13,11 @@ import NewsEmptyState from '@/components/news/NewsEmptyState';
 import { useNewsData } from '@/hooks/useNewsData';
 import NewsPagination from '@/components/news/NewsPagination';
 import { formatDistanceToNow, format } from 'date-fns';
+import { storeArticle } from '@/utils/articleStorage';
 
 const News = () => {
   const { isSignedIn, isLoaded } = useUser();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const {
@@ -60,8 +62,12 @@ const News = () => {
   };
 
   const handleArticleClick = (article: any) => {
-    const articleData = encodeURIComponent(JSON.stringify(article));
-    window.location.href = `/article?data=${articleData}`;
+    try {
+      const shortId = storeArticle(article);
+      navigate(`/article/${shortId}`);
+    } catch (error) {
+      console.error('Failed to store article:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
