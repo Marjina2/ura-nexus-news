@@ -2,7 +2,7 @@
 import React, { useState, memo } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { Settings, User, Shield, Smartphone, ArrowLeft, Bell, Palette, Globe } from "lucide-react";
+import { Settings, User, Shield, Smartphone, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const ProfileSettings = React.lazy(() => import("@/components/settings/ProfileSettings"));
 const SecuritySettings = React.lazy(() => import("@/components/settings/SecuritySettings"));
 const ConnectedDevices = React.lazy(() => import("@/components/settings/ConnectedDevices"));
-const NotificationSettings = React.lazy(() => import("@/components/settings/NotificationSettings"));
-const AppearanceSettings = React.lazy(() => import("@/components/settings/AppearanceSettings"));
 
 const AccountSettings = memo(() => {
   const { user } = useUser();
@@ -22,9 +20,9 @@ const AccountSettings = memo(() => {
     <div className="min-h-screen bg-background">
       {/* Enhanced Header with gradient */}
       <div className="border-b border-border/20 bg-gradient-to-r from-card/20 via-card/10 to-card/20 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <Link to="/">
                 <Button 
                   variant="ghost" 
@@ -36,29 +34,29 @@ const AccountSettings = memo(() => {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                   <div className="p-2 bg-primary/20 rounded-lg">
-                    <Settings className="w-7 h-7 text-primary" />
+                    <Settings className="w-6 h-6 md:w-7 md:h-7 text-primary" />
                   </div>
                   Account Settings
                 </h1>
-                <p className="text-muted-foreground mt-1 text-lg">
-                  Manage your account preferences, security settings, and personalization options
+                <p className="text-muted-foreground mt-1 text-base md:text-lg">
+                  Manage your account preferences and security settings
                 </p>
               </div>
             </div>
             {user && (
-              <div className="flex items-center gap-3 p-3 bg-card/50 rounded-lg border border-border/20">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <div className="flex items-center gap-3 p-3 bg-card/50 rounded-lg border border-border/20 w-full sm:w-auto">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                   {user.imageUrl ? (
                     <img src={user.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover" />
                   ) : (
-                    <User className="w-5 h-5 text-primary" />
+                    <User className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                   )}
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{user.fullName || user.username}</p>
-                  <p className="text-xs text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground truncate">{user.fullName || user.username}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.primaryEmailAddress?.emailAddress}</p>
                 </div>
               </div>
             )}
@@ -70,7 +68,7 @@ const AccountSettings = memo(() => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {user ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-5 bg-card/50 border border-border/20 p-1 h-auto">
+            <TabsList className="grid w-full grid-cols-3 bg-card/50 border border-border/20 p-1 h-auto">
               <TabsTrigger 
                 value="profile" 
                 className="flex flex-col items-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground hover:text-foreground transition-all duration-200"
@@ -84,20 +82,6 @@ const AccountSettings = memo(() => {
               >
                 <Shield className="w-5 h-5" />
                 <span className="text-sm font-medium">Security</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="notifications" 
-                className="flex flex-col items-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground hover:text-foreground transition-all duration-200"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="text-sm font-medium">Notifications</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="appearance" 
-                className="flex flex-col items-center gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground hover:text-foreground transition-all duration-200"
-              >
-                <Palette className="w-5 h-5" />
-                <span className="text-sm font-medium">Appearance</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="devices" 
@@ -125,14 +109,6 @@ const AccountSettings = memo(() => {
 
               <TabsContent value="security" className="space-y-6">
                 <SecuritySettings />
-              </TabsContent>
-
-              <TabsContent value="notifications" className="space-y-6">
-                <NotificationSettings />
-              </TabsContent>
-
-              <TabsContent value="appearance" className="space-y-6">
-                <AppearanceSettings />
               </TabsContent>
 
               <TabsContent value="devices" className="space-y-6">
