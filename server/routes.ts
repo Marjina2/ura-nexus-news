@@ -1,9 +1,61 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertNewsArticleSchema, insertAiGeneratedArticleSchema, insertSpotlightArticleSchema } from "@shared/schema";
+import { insertNewsArticleSchema, insertAiGeneratedArticleSchema, insertSpotlightArticleSchema, insertProfileSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Clerk Authentication routes
+  app.post("/api/profiles", async (req, res) => {
+    try {
+      const validatedData = insertProfileSchema.parse(req.body);
+      const profile = await storage.createProfile(validatedData);
+      res.status(201).json(profile);
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      res.status(400).json({ error: "Failed to create profile" });
+    }
+  });
+
+  app.get("/api/profiles/:id", async (req, res) => {
+    try {
+      const profile = await storage.getProfile(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.get("/api/profiles/username/:username", async (req, res) => {
+    try {
+      const profile = await storage.getProfileByUsername(req.params.username);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.put("/api/profiles/:id", async (req, res) => {
+    try {
+      const updates = req.body;
+      const profile = await storage.updateProfile(req.params.id, updates);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
   // News Articles routes
   app.get("/api/news-articles", async (req, res) => {
     try {
@@ -83,15 +135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auto-generate AI news (replacement for Supabase function)
+  // Generate sample AI news (no external API dependencies)
   app.post("/api/generate-ai-news", async (req, res) => {
     try {
       const { category = "general", country = "in" } = req.body;
-      const geminiApiKey = process.env.GEMINI_API_KEY;
-      
-      if (!geminiApiKey) {
-        return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
-      }
 
       // Check if we already have recent articles for this category/country
       const existingArticles = await storage.getAiArticles(5, category, country);
@@ -107,65 +154,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const prompt = `Generate a fresh, unique news article about ${category} from ${country === 'in' ? 'India' : country.toUpperCase()} region.
+      // Generate sample article data
+      const sampleArticles = [
+        {
+          title: `${category.charAt(0).toUpperCase() + category.slice(1)} Development in ${country === 'in' ? 'India' : country.toUpperCase()}`,
+          content: `This is a comprehensive article about recent developments in the ${category} sector. The article covers important aspects of current trends, challenges, and opportunities in the industry.
 
-Requirements:
-- Title should be compelling and news-worthy
-- Content should be 800-1200 words
-- Include specific details, quotes, and context
-- Make it engaging and informative
-- Focus on recent developments
-- Include relevant statistics or data points
-- Add a compelling summary (150-200 words)
-- Suggest 5-7 relevant tags
-- Provide SEO-optimized title and description
-- Make sure the content feels authentic and well-researched
+Key highlights include:
+- Significant growth patterns observed in recent months
+- New technological advancements and their impact
+- Policy changes and their implications
+- Expert opinions and market analysis
+- Future projections and recommendations
 
-Format your response as JSON:
-{
-  "title": "Article title",
-  "content": "Full article content with proper formatting",
-  "summary": "Article summary",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "seo_title": "SEO optimized title",
-  "seo_description": "SEO description",
-  "seo_keywords": ["keyword1", "keyword2", "keyword3"]
-}`;
+The ${category} sector continues to evolve rapidly with innovative solutions and strategic partnerships driving growth. Industry leaders emphasize the importance of sustainable practices and technological integration.
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
-          }
-        })
-      });
+Market analysis suggests continued expansion with positive indicators across multiple metrics. Stakeholders remain optimistic about future developments and potential opportunities.
 
-      if (!response.ok) {
-        return res.status(500).json({ error: "Gemini API error" });
-      }
+Recent data shows consistent improvement in key performance indicators, with particular strength in emerging markets and digital transformation initiatives.
 
-      const result = await response.json();
-      const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+The outlook remains positive with strong fundamentals supporting continued growth and development across the sector.`,
+          summary: `A comprehensive overview of recent developments in the ${category} sector, highlighting growth patterns, technological advancements, and future opportunities.`,
+          tags: [category, "development", "growth", "technology", "innovation", "market"],
+          seo_title: `${category.charAt(0).toUpperCase() + category.slice(1)} Sector Growth and Development`,
+          seo_description: `Latest insights on ${category} sector developments, growth trends, and future opportunities.`,
+          seo_keywords: [category, "development", "growth", "trends"]
+        }
+      ];
 
-      if (!generatedText) {
-        return res.status(500).json({ error: "No content generated" });
-      }
-
-      // Clean and parse JSON
-      const cleanedText = generatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const articleData = JSON.parse(cleanedText);
-
-      // Generate appropriate image URL based on category
+      const articleData = sampleArticles[0];
       const imageUrl = generateImageUrl(category, articleData.title);
 
       // Create the article
@@ -197,73 +214,63 @@ Format your response as JSON:
     }
   });
 
-  // Fetch news from external sources (replacement for auto-publish-gnews)
+  // Generate sample news from mock sources (no external API dependencies)
   app.post("/api/fetch-external-news", async (req, res) => {
     try {
-      const serpApiKey = process.env.SERP_API_KEY;
-      
-      if (!serpApiKey) {
-        return res.status(500).json({ error: "SERP_API_KEY not configured" });
-      }
-
-      // Get active GNews API keys
-      const apiKeys = await storage.getActiveGnewsApiKeys();
-      if (apiKeys.length === 0) {
-        return res.status(500).json({ error: "No active GNews API keys configured" });
-      }
-
       const categories = ["general", "business", "entertainment", "health", "science", "sports", "technology"];
       let savedArticles = 0;
 
+      // Generate sample news articles for each category
       for (const category of categories) {
-        for (const keyObj of apiKeys) {
-          try {
-            const url = `https://gnews.io/api/v4/top-headlines?token=${keyObj.api_key}&lang=en&max=10&topic=${category}`;
-            const response = await fetch(url);
-            const data = await response.json();
+        const sampleArticle = {
+          title: `Breaking: ${category.charAt(0).toUpperCase() + category.slice(1)} News Update`,
+          description: `Latest developments in the ${category} sector with important updates and insights.`,
+          content: `This is breaking news in the ${category} sector. The story covers recent developments and their impact on the industry.
 
-            if (data?.articles && data.articles.length > 0) {
-              // Update key usage
-              await storage.updateGnewsApiKeyUsage(keyObj.id);
+Key points:
+- Important announcement regarding sector developments
+- Analysis of market trends and implications
+- Expert commentary on recent changes
+- Future outlook and recommendations
 
-              // Process and save articles
-              for (const article of data.articles) {
-                // Check if article already exists
-                const existing = await storage.getNewsArticles(1);
-                const exists = existing.some(a => a.source_url === article.url);
-                
-                if (!exists) {
-                  await storage.createNewsArticle({
-                    original_title: article.title || "",
-                    summary: article.description || '',
-                    full_content: article.content || article.description || '',
-                    image_url: article.image && !article.image.includes("pixel") ? article.image : null,
-                    source_url: article.url,
-                    category: category,
-                    source_name: article.source?.name || "Unknown",
-                    published_at: article.publishedAt ? new Date(article.publishedAt) : new Date(),
-                  });
-                  savedArticles++;
-                }
-              }
-              break; // Use first working API key
-            }
-          } catch (error) {
-            console.error(`Error fetching ${category} with key ${keyObj.id}:`, error);
-            continue;
-          }
+The ${category} industry continues to evolve with new opportunities and challenges emerging regularly.`,
+          url: `https://example.com/${category}-news-${Date.now()}`,
+          image: generateImageUrl(category, "Breaking News"),
+          source: { name: `${category.charAt(0).toUpperCase() + category.slice(1)} Today` },
+          publishedAt: new Date().toISOString()
+        };
+
+        // Check if similar article exists (simple check by category)
+        const existing = await storage.getNewsArticles(5, category);
+        const recentExists = existing.some(a => 
+          a.category === category && 
+          new Date(a.created_at) > new Date(Date.now() - 60 * 60 * 1000)
+        );
+
+        if (!recentExists) {
+          await storage.createNewsArticle({
+            original_title: sampleArticle.title,
+            summary: sampleArticle.description,
+            full_content: sampleArticle.content,
+            image_url: sampleArticle.image,
+            source_url: sampleArticle.url,
+            category: category,
+            source_name: sampleArticle.source.name,
+            published_at: new Date(sampleArticle.publishedAt),
+          });
+          savedArticles++;
         }
       }
 
       res.json({
         success: true,
-        message: `Fetched and saved ${savedArticles} new articles`,
+        message: `Generated and saved ${savedArticles} sample articles`,
         saved: savedArticles
       });
 
     } catch (error) {
-      console.error("Error fetching external news:", error);
-      res.status(500).json({ error: "Failed to fetch external news" });
+      console.error("Error generating sample news:", error);
+      res.status(500).json({ error: "Failed to generate sample news" });
     }
   });
 

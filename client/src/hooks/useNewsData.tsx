@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 interface UseNewsDataProps {
@@ -14,21 +14,23 @@ export const useNewsData = ({ page = 1, category = 'all' }: UseNewsDataProps = {
   const offset = (currentPage - 1) * articlesPerPage;
 
   const queryFn = useCallback(async () => {
-    let query = supabase
-      .from('news_articles')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + articlesPerPage - 1);
-
-    if (category && category !== 'all') {
-      query = query.eq('category', category);
+    try {
+      const articles = await apiClient.getNewsArticles(
+        articlesPerPage,
+        category === 'all' ? undefined : category
+      );
+      
+      // For pagination, we'll approximate total count based on what we get
+      const totalCount = articles.length === articlesPerPage ? 
+        (currentPage * articlesPerPage) + 1 : 
+        (currentPage - 1) * articlesPerPage + articles.length;
+        
+      return { articles: articles || [], totalCount };
+    } catch (error) {
+      console.error('Error fetching news data:', error);
+      return { articles: [], totalCount: 0 };
     }
-
-    const { data, error, count } = await query;
-
-    if (error) throw error;
-    return { articles: data || [], totalCount: count || 0 };
-  }, [offset, articlesPerPage, category]);
+  }, [offset, articlesPerPage, category, currentPage]);
 
   const query = useQuery({
     queryKey: ['news-articles', currentPage, category],

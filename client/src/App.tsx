@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { Toaster } from '@/components/ui/toaster';
 import ClerkProtectedRoute from '@/components/auth/ClerkProtectedRoute';
 
@@ -21,6 +22,9 @@ const Search = React.lazy(() => import('@/pages/Search'));
 const AuthCallback = React.lazy(() => import('@/pages/AuthCallback'));
 const News = React.lazy(() => import('@/pages/News'));
 const SpotlightDetailPage = React.lazy(() => import('@/pages/SpotlightDetailPage'));
+
+// Get Clerk publishable key from environment
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_aGVscGZ1bC1waWthLTUuY2xlcmsuYWNjb3VudHMuZGV2JA";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,11 +48,12 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-pulsee-black text-ura-white">
-        <Router>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-pulsee-black text-ura-white">
+          <Router>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/pricing" element={<Pricing />} />
@@ -78,6 +83,7 @@ function App() {
         <Toaster />
       </div>
     </QueryClientProvider>
+  </ClerkProvider>
   );
 }
 

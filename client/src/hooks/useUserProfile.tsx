@@ -1,24 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import type { Json } from '@/integrations/supabase/types';
+import type { Profile } from '@shared/schema';
 
-interface UserProfile {
-  id: string;
-  username: string;
-  country: string;
-  full_name?: string;
-  avatar_url?: string;
-  phone_number?: string;
-  is_verified: boolean;
-  email_verified: boolean;
-  email_verification_token?: string;
-  email_verification_sent_at?: string;
-  connected_devices: Json;
-  created_at: string;
-  updated_at: string;
-}
+type UserProfile = Profile;
 
 export const useUserProfile = () => {
   const { user } = useUser();
@@ -31,17 +17,8 @@ export const useUserProfile = () => {
     if (!user?.id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      setProfile({
-        ...data,
-        connected_devices: Array.isArray(data.connected_devices) ? data.connected_devices : []
-      } as UserProfile);
+      const profile = await apiClient.getProfile(user.id);
+      setProfile(profile);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
