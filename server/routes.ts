@@ -2,6 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertNewsArticleSchema, insertAiGeneratedArticleSchema, insertSpotlightArticleSchema, insertProfileSchema } from "@shared/schema";
+import { 
+  fetchNewsFromSupabase, 
+  fetchCachedArticlesFromSupabase, 
+  fetchSpotlightArticlesFromSupabase,
+  type SupabaseArticle 
+} from "./supabase";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Clerk Authentication routes
@@ -56,15 +62,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // News Articles routes
+  // News Articles routes - now using Supabase
   app.get("/api/news-articles", async (req, res) => {
     try {
-      const { limit = "50", category } = req.query;
-      const articles = await storage.getNewsArticles(
-        parseInt(limit as string), 
-        category as string
+      const { limit = "50", category = "general", country = "us" } = req.query;
+      const articles = await fetchNewsFromSupabase(
+        category as string,
+        country as string,
+        parseInt(limit as string)
       );
-      res.json(articles);
+      
+      // Convert Supabase format to internal format
+      const formattedArticles = articles.map((article: SupabaseArticle) => ({
+        id: article.id,
+        title: article.title,
+        description: article.description,
+        content: article.content,
+        url: article.url,
+        imageUrl: article.image_url,
+        source: article.source,
+        author: article.author,
+        category: article.category,
+        country: article.country,
+        language: article.language,
+        publishedAt: article.published_at,
+        createdAt: article.created_at,
+        updatedAt: article.updated_at
+      }));
+      
+      res.json(formattedArticles);
     } catch (error) {
       console.error("Error fetching news articles:", error);
       res.status(500).json({ error: "Failed to fetch news articles" });
@@ -274,19 +300,31 @@ The ${category} industry continues to evolve with new opportunities and challeng
     }
   });
 
-  // Spotlight Articles routes
+  // Spotlight Articles routes - using Supabase
   app.get("/api/spotlight-articles", async (req, res) => {
     try {
-      const { active } = req.query;
-      let articles;
+      const { limit = "5" } = req.query;
+      const articles = await fetchSpotlightArticlesFromSupabase(parseInt(limit as string));
       
-      if (active === 'true') {
-        articles = await storage.getActiveSpotlightArticles();
-      } else {
-        articles = await storage.getSpotlightArticles();
-      }
+      // Convert Supabase format to internal format
+      const formattedArticles = articles.map((article: SupabaseArticle) => ({
+        id: article.id,
+        title: article.title,
+        description: article.description,
+        content: article.content,
+        url: article.url,
+        imageUrl: article.image_url,
+        source: article.source,
+        author: article.author,
+        category: article.category,
+        country: article.country,
+        language: article.language,
+        publishedAt: article.published_at,
+        createdAt: article.created_at,
+        updatedAt: article.updated_at
+      }));
       
-      res.json(articles);
+      res.json(formattedArticles);
     } catch (error) {
       console.error("Error fetching spotlight articles:", error);
       res.status(500).json({ error: "Failed to fetch spotlight articles" });
@@ -317,15 +355,31 @@ The ${category} industry continues to evolve with new opportunities and challeng
     }
   });
 
-  // Cached Articles routes
+  // Cached Articles routes - using Supabase
   app.get("/api/cached-articles", async (req, res) => {
     try {
-      const { limit = "50", category } = req.query;
-      const articles = await storage.getCachedArticles(
-        parseInt(limit as string),
-        category as string
-      );
-      res.json(articles);
+      const { limit = "10" } = req.query;
+      const articles = await fetchCachedArticlesFromSupabase(parseInt(limit as string));
+      
+      // Convert Supabase format to internal format
+      const formattedArticles = articles.map((article: SupabaseArticle) => ({
+        id: article.id,
+        title: article.title,
+        description: article.description,
+        content: article.content,
+        url: article.url,
+        imageUrl: article.image_url,
+        source: article.source,
+        author: article.author,
+        category: article.category,
+        country: article.country,
+        language: article.language,
+        publishedAt: article.published_at,
+        createdAt: article.created_at,
+        updatedAt: article.updated_at
+      }));
+      
+      res.json(formattedArticles);
     } catch (error) {
       console.error("Error fetching cached articles:", error);
       res.status(500).json({ error: "Failed to fetch cached articles" });
