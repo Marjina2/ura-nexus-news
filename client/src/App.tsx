@@ -24,7 +24,11 @@ const News = React.lazy(() => import('@/pages/News'));
 const SpotlightDetailPage = React.lazy(() => import('@/pages/SpotlightDetailPage'));
 
 // Get Clerk publishable key from environment
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_aGVscGZ1bC1waWthLTUuY2xlcmsuYWNjb3VudHMuZGV2JA";
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!clerkPubKey) {
+  throw new Error("Missing Clerk Publishable Key. Please add VITE_CLERK_PUBLISHABLE_KEY to your environment variables.");
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
